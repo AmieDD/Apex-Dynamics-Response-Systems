@@ -1,0 +1,124 @@
+/* Kaiju Defense Network — theme token source of truth.
+   Imported once globally from src/index.css.
+
+   Surfaces and text are space-separated RGB triplets so Tailwind can compose
+   them via `rgb(var(--token) / <alpha-value>)` (see tailwind.config.ts).
+   Threat-scale colors are plain hex values so they can be consumed directly by
+   CSS, inline styles, and the MapLibre canvas. The TS mirror lives in
+   src/mock/severity.ts and must stay in sync with the threat values below. */
+:root {
+  /* Surfaces and text (RGB triplets for Tailwind color tokens). */
+  --surface: 13 17 23; /* #0D1117 near-black command-center backdrop */
+  --surface-raised: 22 27 34; /* #161B22 raised panels */
+  --border: 48 54 61; /* #30363D hairline borders */
+  --text: 230 237 243; /* #E6EDF3 primary text */
+  --text-muted: 139 148 158; /* #8B949E secondary/telemetry text */
+  --accent: 88 166 255; /* #58A6FF interactive accent */
+
+  /* Threat scale: Dormant -> Stirring -> Elevated -> Critical -> Cataclysm. */
+  --threat-dormant: #10b981;
+  --threat-stirring: #facc15;
+  --threat-elevated: #f97316;
+  --threat-critical: #ef4444;
+  --threat-cataclysm: #b91c1c;
+
+  color-scheme: dark;
+}
+
+/* Command map markers (CommandMap.tsx).
+   A severity-colored dot carrying the codename initial sits above an expanding
+   pulse ring. The pulse honors prefers-reduced-motion: when reduced motion is
+   requested the ring renders static (no animation). */
+.kdn-marker {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.kdn-marker-dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  border: 1.5px solid rgb(var(--surface));
+  color: rgb(var(--surface));
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.kdn-pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  transform: translate(-50%, -50%);
+  opacity: 0.6;
+  animation: kdn-pulse 1800ms ease-out infinite;
+  pointer-events: none;
+}
+
+.kdn-marker--selected .kdn-marker-dot {
+  border-color: rgb(var(--accent));
+  box-shadow: 0 0 0 3px rgb(var(--accent) / 0.6);
+}
+
+@keyframes kdn-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.7);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* Citywide alert scrim drawn over the map when an alert is active.
+   --threat-critical is a plain hex value, so alpha compositing uses color-mix
+   against transparent rather than the rgb()/<alpha> syntax (which only works
+   for space-separated RGB triplets). This keeps the threat hex single-sourced. */
+.kdn-alert-scrim {
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--threat-critical) 0%, transparent) 55%,
+    color-mix(in srgb, var(--threat-critical) 28%, transparent) 100%
+  );
+  animation: kdn-alert-flash 1400ms ease-in-out infinite;
+}
+
+@keyframes kdn-alert-flash {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kdn-pulse-ring {
+    animation: none;
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+
+  .kdn-alert-scrim {
+    animation: none;
+    opacity: 0.85;
+  }
+}
