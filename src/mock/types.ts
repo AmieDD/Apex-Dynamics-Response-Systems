@@ -1,0 +1,68 @@
+// Domain model for the Kaiju Defense Network command center.
+
+import type { ThreatLevel } from './severity'
+
+/** Operational status of a tracked leviathan. */
+export type LeviathanStatus =
+  | 'SUBMERGED'
+  | 'SURFACED'
+  | 'INBOUND'
+  | 'LANDFALL'
+  | 'CONTAINED'
+
+/** A tracked apex threat ("leviathan"). */
+export interface Leviathan {
+  /** Stable identifier. */
+  id: string
+  /** Operational call sign, e.g. "Gorathos". */
+  codename: string
+  /** Roman-numeral severity class, e.g. "IV". */
+  classNumeral: string
+  /** Behavioral archetype, e.g. "Abyssal Colossus". */
+  archetype: string
+  /** Engagement/detection range in kilometers. */
+  range: number
+  /** Height in meters. */
+  height: number
+  /** Travel speed in km/h. */
+  speed: number
+  /** Remaining containment hit points (counts down over time). */
+  hp: number
+  /** Maximum hit points, for HP-bar ratios. */
+  hpMax: number
+  /** Current operational status. */
+  status: LeviathanStatus
+  /** Longitude (WGS84). */
+  lng: number
+  /** Latitude (WGS84). */
+  lat: number
+  /** Current threat level on the Dormant -> Cataclysm scale. */
+  threat: ThreatLevel
+}
+
+/** Severity tag for a Signal Feed entry. */
+export type SignalSeverity = 'INFO' | 'WARN' | 'OPS'
+
+/** A single timestamped event in the Signal Feed. */
+export interface SignalEvent {
+  /** Stable identifier. */
+  id: string
+  /** Severity tag. */
+  severity: SignalSeverity
+  /** Human-readable message text. */
+  message: string
+  /** Event time (epoch milliseconds). */
+  timestamp: number
+  /** Optional link to the related leviathan by id. */
+  leviathanId?: string
+}
+
+/** A deployable response asset with finite capacity. */
+export interface DispatchUnit {
+  /** Display name, e.g. "Scramble Jets". */
+  name: string
+  /** Remaining deployable capacity. */
+  available: number
+  /** Maximum capacity, for ratio displays. */
+  capacity: number
+}
