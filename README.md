@@ -1,4 +1,9 @@
 # Apex Dynamics Response Systems
+
+[![Deploy to GitHub Pages](https://github.com/AmieDD/Apex-Dynamics-Response-Systems/actions/workflows/deploy.yml/badge.svg)](https://github.com/AmieDD/Apex-Dynamics-Response-Systems/actions/workflows/deploy.yml)
+
+> Live demo: https://amiedd.github.io/Apex-Dynamics-Response-Systems/
+
 ## Project Titan Watch: A mocked emergency-response command-center prototype
 
 <img src="public/Clipzilla.png" alt="Clipzilla, the Apex Dynamics Response Systems mascot, holding a tablet displaying the command-center dashboard" width="320">

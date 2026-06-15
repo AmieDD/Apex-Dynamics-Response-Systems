@@ -52,7 +52,7 @@ function mascotPose(
 ): { src: string; alt: string; alarm: boolean; ringColor: string | null } {
   if (alertActive) {
     return {
-      src: '/ClipzillaAlarm.png',
+      src: `${import.meta.env.BASE_URL}ClipzillaAlarm.png`,
       alt: 'Clipzilla raising an alert beacon — citywide alert active',
       alarm: true,
       ringColor: threatColor('Critical'),
@@ -60,14 +60,14 @@ function mascotPose(
   }
   if (threatRank(threatLevel) >= threatRank('Critical')) {
     return {
-      src: '/ClipzillaAngry.png',
+      src: `${import.meta.env.BASE_URL}ClipzillaAngry.png`,
       alt: `Clipzilla on the offensive — ${threatLabel(threatLevel)} threat`,
       alarm: false,
       ringColor: threatColor(threatLevel),
     }
   }
   return {
-    src: '/Clipzilla.png',
+    src: `${import.meta.env.BASE_URL}Clipzilla.png`,
     alt: 'Clipzilla — Apex Dynamics mascot',
     alarm: false,
     ringColor: null,
