@@ -155,10 +155,15 @@
 
 .ls-head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
   padding: 7px 10px 6px;
   border-bottom: 1px solid rgb(var(--border) / 0.6);
+}
+
+.ls-head-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
 }
 
 .ls-title {
@@ -169,14 +174,13 @@
   color: rgb(var(--text));
 }
 
-.ls-mock {
-  padding: 1px 5px;
+.ls-sub {
+  margin-top: 2px;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
   color: rgb(var(--text-muted));
-  border: 1px solid rgb(var(--border));
 }
 
 .ls-field {
@@ -737,8 +741,8 @@
     animation: none;
   }
 
-  /* Skip the advance: the outcome is conveyed by node color + PROTECTED /
-     OVERRUN labels and the resolved read-out, so no travel is needed. */
+  /* Skip the advance: the outcome is conveyed by node color + SAVED /
+     SACRIFICED labels and the resolved read-out, so no travel is needed. */
   .ls-mon.impact,
   .ls-mon.repelled {
     animation: none;

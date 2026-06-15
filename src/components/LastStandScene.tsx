@@ -1,10 +1,14 @@
 // Last-Stand mini-map: a compact, fully MOCKED scenario rendered as a corner
-// inset over the command map. Two cities sit on a gridlined field and a
-// leviathan advances on each from opposite edges; every run one city is saved
-// (its leviathan repelled before impact — node turns PROTECTED) and the other
-// is overrun (its leviathan reaches the node — OVERRUN). The "decision" is a
+// inset over the command map. It dramatizes a forced-choice decision an AI
+// agent would face — two kaiju attack two cities at once and only one city can
+// be saved. Two cities sit on a gridlined field and a leviathan advances on
+// each from opposite edges; every run the agent "picks" one city to save (its
+// leviathan repelled before impact — node turns SAVED) and the other is
+// sacrificed (its leviathan reaches the node — SACRIFICED). The "decision" is a
 // bare coin flip in chooseCityToSave(): no criteria, scoring, or fairness — the
-// exact seam where a real decision system (HVE Core) would plug in.
+// exact seam where a real decision system (HVE Core) would plug in. The header,
+// footer read-out, and node labels all surface the agent-decision framing so a
+// viewer can tell what is being demonstrated.
 //
 // Motion is CSS-keyframe driven (the `.ls-*` rules in src/styles/tokens.css)
 // and restarts by remounting the field on a `runId` key. The animation shape is
@@ -65,15 +69,15 @@ export function LastStandScene(): React.JSX.Element {
   const lostCity = savedCity === 'NORTHPOINT' ? 'BAYRIDGE' : 'NORTHPOINT'
 
   return (
-    <section aria-label="Last-stand scenario mini-map" className="ls-panel">
+    <section
+      aria-label="Last-stand scenario: mocked AI agent chooses one of two cities to save"
+      className="ls-panel"
+    >
       <div className="ls-head">
-        <span className="ls-title">LAST-STAND SCENARIO</span>
-        <span
-          className="ls-mock"
-          title="Scripted demo — decision is a coin flip"
-        >
-          MOCK
-        </span>
+        <div className="ls-head-text">
+          <span className="ls-title">AI AGENT · SINGLE-SAVE DECISION</span>
+          <span className="ls-sub">2 KAIJU · 2 CITIES · SAVE ONLY 1</span>
+        </div>
       </div>
 
       {/* key={runId} restarts every CSS animation for a clean replay. */}
@@ -92,9 +96,9 @@ export function LastStandScene(): React.JSX.Element {
               <div className="ls-city-name">{c.name}</div>
               <div className="ls-city-state">
                 {state === 'protected'
-                  ? 'PROTECTED'
+                  ? 'SAVED'
                   : state === 'overrun'
-                    ? 'OVERRUN'
+                    ? 'SACRIFICED'
                     : '\u00A0'}
               </div>
               {c.name === savedCity && (
@@ -125,11 +129,11 @@ export function LastStandScene(): React.JSX.Element {
           className={`ls-outcome${resolved ? '' : ' pending'}`}
         >
           {resolved
-            ? `${savedCity} HELD · ${lostCity} OVERRUN`
-            : 'ENGAGEMENT IN PROGRESS…'}
+            ? `AGENT SAVED ${savedCity} · SACRIFICED ${lostCity}`
+            : 'AGENT WEIGHING TARGETS…'}
         </span>
         <button type="button" className="ls-btn" onClick={startRun}>
-          RUN AGAIN
+          RE-RUN
         </button>
       </div>
     </section>
