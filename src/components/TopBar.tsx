@@ -23,6 +23,22 @@ function formatClock(epochMs: number): string {
   return `${hh}:${mm}:${ss}`
 }
 
+/** Self-contained kaiju badge shown if a Clipzilla pose fails to load, so the
+ *  brand mark degrades gracefully instead of a broken-image glyph. Inlined as a
+ *  data URI — no extra network request and no dependency on a real file. */
+const MASCOT_FALLBACK = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">` +
+    `<path d="M11 12 8 5 15 10Z" fill="#e6edf3"/>` +
+    `<path d="M29 12 32 5 25 10Z" fill="#e6edf3"/>` +
+    `<ellipse cx="20" cy="22" rx="13" ry="12" fill="#863bff"/>` +
+    `<circle cx="15" cy="20" r="3.5" fill="#fff"/>` +
+    `<circle cx="25" cy="20" r="3.5" fill="#fff"/>` +
+    `<circle cx="15" cy="20.5" r="1.6" fill="#0d1117"/>` +
+    `<circle cx="25" cy="20.5" r="1.6" fill="#0d1117"/>` +
+    `<path d="M15 28Q20 32 25 28" stroke="#0d1117" stroke-width="1.5" stroke-linecap="round"/>` +
+    `</svg>`,
+)}`
+
 /** Picks the Clipzilla pose from command-center state. An active citywide alert
  *  takes precedence over threat level, so the beacon always shows during an
  *  alert; otherwise Critical/Cataclysm shows the charging pose and calmer
@@ -75,6 +91,15 @@ export function TopBar({
           title="Clipzilla"
           width={40}
           height={40}
+          onError={(e) => {
+            // Swap to the inline badge once; clearing onerror prevents a loop
+            // if the fallback itself ever fails.
+            const img = e.currentTarget
+            if (img.src !== MASCOT_FALLBACK) {
+              img.onerror = null
+              img.src = MASCOT_FALLBACK
+            }
+          }}
           className={`kdn-mascot h-10 w-10 shrink-0 rounded-md border bg-surface object-contain${
             mascot.ringColor ? '' : ' border-border'
           }${mascot.alarm ? ' kdn-mascot--alarm' : ''}`}
