@@ -43,7 +43,7 @@ function App(): React.JSX.Element {
 
   return (
     <div className="grid h-screen grid-rows-[auto_minmax(0,1fr)_auto] bg-surface text-text">
-      <TopBar now={now} threatLevel={threatLevel} />
+      <TopBar now={now} threatLevel={threatLevel} alertActive={alertActive} />
 
       <main className="grid min-h-0 grid-cols-1 gap-3 p-3 lg:grid-cols-[clamp(15rem,20vw,18rem)_minmax(0,1fr)_clamp(18rem,24vw,22rem)]">
         {/* Left rail: threat ladder + dispatch assets. */}

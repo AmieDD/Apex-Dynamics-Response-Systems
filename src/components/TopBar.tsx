@@ -1,13 +1,15 @@
 // Command-center top bar: live wall clock + color-coded Threat Level badge.
 // Presentational only — receives its slice of state via props so App can compose it.
 
-import { threatColor, threatLabel, type ThreatLevel } from '../mock/severity'
+import { threatColor, threatLabel, threatRank, type ThreatLevel } from '../mock/severity'
 
 export interface TopBarProps {
   /** Current wall-clock time (epoch ms), updated every second by the parent. */
   now: number
   /** Highest active threat level on the Dormant -> Cataclysm scale. */
   threatLevel: ThreatLevel
+  /** Whether a citywide alert is active; drives the mascot's alert pose. */
+  alertActive: boolean
   /** Optional headline; defaults to the network name. */
   title?: string
 }
@@ -21,23 +23,57 @@ function formatClock(epochMs: number): string {
   return `${hh}:${mm}:${ss}`
 }
 
+/** Picks the Clipzilla pose from command-center state. An active citywide alert
+ *  takes precedence over threat level, so the beacon always shows during an
+ *  alert; otherwise Critical/Cataclysm shows the charging pose and calmer
+ *  levels show the default happy mascot. */
+function mascotPose(
+  threatLevel: ThreatLevel,
+  alertActive: boolean,
+): { src: string; alt: string; alarm: boolean } {
+  if (alertActive) {
+    return {
+      src: '/ClipzillaAlarm.png',
+      alt: 'Clipzilla raising an alert beacon — citywide alert active',
+      alarm: true,
+    }
+  }
+  if (threatRank(threatLevel) >= threatRank('Critical')) {
+    return {
+      src: '/ClipzillaAngry.png',
+      alt: `Clipzilla on the offensive — ${threatLabel(threatLevel)} threat`,
+      alarm: false,
+    }
+  }
+  return {
+    src: '/Clipzilla.png',
+    alt: 'Clipzilla — Apex Dynamics mascot',
+    alarm: false,
+  }
+}
+
 export function TopBar({
   now,
   threatLevel,
+  alertActive,
   title = 'KAIJU DEFENSE NETWORK',
 }: TopBarProps): React.JSX.Element {
   const color = threatColor(threatLevel)
+  const mascot = mascotPose(threatLevel, alertActive)
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-border bg-surface-raised px-4 py-3">
+    <header className="kdn-topbar flex items-center justify-between gap-4 px-4 py-3">
       <div className="flex items-center gap-3">
         <img
-          src="/Clipzilla.png"
-          alt="Clipzilla — Apex Dynamics mascot"
+          key={mascot.src}
+          src={mascot.src}
+          alt={mascot.alt}
           title="Clipzilla"
           width={40}
           height={40}
-          className="h-10 w-10 shrink-0 rounded-md border border-border bg-surface object-contain"
+          className={`kdn-mascot h-10 w-10 shrink-0 rounded-md border border-border bg-surface object-contain${
+            mascot.alarm ? ' kdn-mascot--alarm' : ''
+          }`}
         />
         <div className="flex items-baseline gap-3">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-text-muted">

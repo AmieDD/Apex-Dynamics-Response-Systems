@@ -15,6 +15,12 @@
   --text-muted: 139 148 158; /* #8B949E secondary/telemetry text */
   --accent: 88 166 255; /* #58A6FF interactive accent */
 
+  /* Command-center top bar: a brand-purple band, lighter than the near-black
+     body so the header reads clearly. Triplet form feeds rgb()/<alpha>. */
+  --topbar-from: 45 32 74; /* #2D204A deep brand purple */
+  --topbar-to: 32 24 56; /* #201838 darker purple, gradient tail */
+  --topbar-border: 124 92 200; /* #7C5CC8 purple hairline */
+
   /* Threat scale: Dormant -> Stirring -> Elevated -> Critical -> Cataclysm. */
   --threat-dormant: #10b981;
   --threat-stirring: #facc15;
@@ -23,6 +29,19 @@
   --threat-cataclysm: #b91c1c;
 
   color-scheme: dark;
+}
+
+/* Command-center top bar (TopBar.tsx).
+   A brand-purple gradient band with a purple hairline underline. Distinct from
+   the near-black body so the header reads clearly; primary --text stays legible
+   on it (contrast ~12:1). */
+.kdn-topbar {
+  background: linear-gradient(
+    180deg,
+    rgb(var(--topbar-from)) 0%,
+    rgb(var(--topbar-to)) 100%
+  );
+  border-bottom: 1px solid rgb(var(--topbar-border) / 0.7);
 }
 
 /* Command map markers (CommandMap.tsx).
@@ -567,6 +586,45 @@
   }
 }
 
+/* Top-bar mascot (TopBar.tsx).
+   Clipzilla reacts to command-center state: the happy pose at calm threat
+   levels, a charging pose at Critical/Cataclysm, and an alert-beacon pose while
+   a citywide alert is active. The <img> is keyed on its src, so each pose change
+   replays a short fade/scale-in. The alarm pose adds a looping red glow pulse.
+   Both honor prefers-reduced-motion (overrides below). */
+.kdn-mascot {
+  animation: kdn-mascot-in 240ms ease-out;
+}
+
+.kdn-mascot--alarm {
+  animation:
+    kdn-mascot-in 240ms ease-out,
+    kdn-mascot-alarm 1100ms ease-in-out 240ms infinite;
+}
+
+@keyframes kdn-mascot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes kdn-mascot-alarm {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 5px var(--threat-critical));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .kdn-pulse-ring {
     animation: none;
@@ -617,6 +675,11 @@
   }
 
   .ls-outcome.pending {
+    animation: none;
+  }
+
+  .kdn-mascot,
+  .kdn-mascot--alarm {
     animation: none;
   }
 }
