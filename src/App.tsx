@@ -12,7 +12,6 @@
 import { lazy, Suspense } from 'react'
 
 import { DispatchPanel } from './components/DispatchPanel'
-import { LastStandScene } from './components/LastStandScene'
 import { LeviathanRoster } from './components/LeviathanRoster'
 import { SignalFeed } from './components/SignalFeed'
 import { ThreatCondition } from './components/ThreatCondition'
@@ -25,6 +24,13 @@ import { useCommandState } from './state/useCommandState'
 // dispatch, feed — paints and becomes interactive while the map chunk streams
 // in behind a calm placeholder, instead of blocking first paint on MapLibre.
 const CommandMap = lazy(() => import('./components/CommandMap'))
+
+// The last-stand scenario is a secondary corner inset over the map; defer it so
+// it rides its own chunk rather than the initial shell. It carries a named
+// export, so adapt it to the default-export shape lazy() expects.
+const LastStandScene = lazy(() =>
+  import('./components/LastStandScene').then((m) => ({ default: m.LastStandScene })),
+)
 
 /** Lightweight stand-in shown while the code-split MapLibre chunk loads. Fills
  *  the hero with a calm dark field and a status line so the layout never jumps
@@ -67,7 +73,12 @@ function App(): React.JSX.Element {
 
   return (
     <div className="grid h-screen grid-rows-[auto_minmax(0,1fr)_auto] bg-surface text-text">
-      <TopBar now={now} threatLevel={threatLevel} alertActive={alertActive} />
+      <TopBar
+        now={now}
+        threatCondition={threatCondition}
+        threatLevel={threatLevel}
+        alertActive={alertActive}
+      />
 
       <main className="grid min-h-0 grid-cols-1 gap-3 p-3 lg:grid-cols-[clamp(15rem,20vw,18rem)_minmax(0,1fr)_clamp(18rem,24vw,22rem)]">
         {/* Left rail: threat ladder + dispatch assets. */}
@@ -97,7 +108,9 @@ function App(): React.JSX.Element {
               reportRange={reportRange}
             />
           </Suspense>
-          <LastStandScene />
+          <Suspense fallback={null}>
+            <LastStandScene />
+          </Suspense>
         </div>
 
         {/* Right rail: active leviathans roster + signal feed. */}

@@ -567,6 +567,29 @@
   }
 }
 
+/* THREATCON readout (TopBar): a brief scale-and-glow bump that replays whenever
+   the number's keyed span remounts on a threat-condition change, echoing the
+   left-rail ladder's escalation without any component state. */
+.kdn-threatcon {
+  display: inline-block;
+  animation: kdn-threatcon-bump 600ms ease-out;
+}
+
+@keyframes kdn-threatcon-bump {
+  0% {
+    transform: scale(1);
+    text-shadow: none;
+  }
+  35% {
+    transform: scale(1.35);
+    text-shadow: 0 0 10px currentColor;
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: none;
+  }
+}
+
 /* Marker flag legend (CommandMap.tsx): a compact key for the coded flags flown
    on the map markers, pinned to the map's bottom-right corner so the flag
    vocabulary is self-documenting. Non-interactive so it never blocks panning. */
@@ -703,6 +726,10 @@
   }
 
   .kdn-marker-target {
+    animation: none;
+  }
+
+  .kdn-threatcon {
     animation: none;
   }
 

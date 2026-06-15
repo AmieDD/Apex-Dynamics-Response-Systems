@@ -6,8 +6,10 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   test: {
-    // The motion model and dispatch knockback are pure functions; no DOM.
+    // The motion model and dispatch knockback are pure functions (node env);
+    // component/hook tests opt into jsdom per-file via a `// @vitest-environment
+    // jsdom` docblock. The .tsx pattern covers rendered-component tests.
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 })

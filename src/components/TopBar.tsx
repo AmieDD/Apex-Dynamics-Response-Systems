@@ -6,6 +6,8 @@ import { threatColor, threatLabel, threatRank, type ThreatLevel } from '../mock/
 export interface TopBarProps {
   /** Current wall-clock time (epoch ms), updated every second by the parent. */
   now: number
+  /** Numeric threat condition code (1 = Dormant ... 5 = Cataclysm). */
+  threatCondition: number
   /** Highest active threat level on the Dormant -> Cataclysm scale. */
   threatLevel: ThreatLevel
   /** Whether a citywide alert is active; drives the mascot's alert pose. */
@@ -74,6 +76,7 @@ function mascotPose(
 
 export function TopBar({
   now,
+  threatCondition,
   threatLevel,
   alertActive,
   title = 'KAIJU DEFENSE NETWORK',
@@ -133,6 +136,23 @@ export function TopBar({
           >
             {formatClock(now)}
           </time>
+        </div>
+
+        <div className="flex flex-col items-end leading-none">
+          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-text-muted">
+            Threatcon
+          </span>
+          <span
+            // Re-keying on the value remounts the span so the bump animation
+            // replays each time the threat condition shifts, drawing the eye to
+            // an escalation without any state in this presentational component.
+            key={threatCondition}
+            className="kdn-threatcon font-mono text-xl font-bold tabular-nums"
+            style={{ color }}
+            aria-label={`Threat condition ${threatCondition} of 5`}
+          >
+            {threatCondition}
+          </span>
         </div>
 
         <div className="flex flex-col items-end leading-none">

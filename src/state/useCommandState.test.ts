@@ -201,3 +201,40 @@ describe('reportLandfall', () => {
     expect(result.current.leviathans).toBe(before)
   })
 })
+
+describe('triggerAlert', () => {
+  it('raises the citywide alert and logs a WARN to the feed', () => {
+    const { result } = renderHook(() => useCommandState())
+
+    act(() => result.current.triggerAlert())
+
+    expect(result.current.alertActive).toBe(true)
+    const event = result.current.feed[0]
+    expect(event.severity).toBe('WARN')
+    expect(event.message).toBe(
+      'CITYWIDE ALERT RAISED — all sectors to shelter posture.',
+    )
+  })
+
+  it('defaults to raising the alert when called with no argument', () => {
+    const { result } = renderHook(() => useCommandState())
+
+    act(() => result.current.triggerAlert())
+
+    expect(result.current.alertActive).toBe(true)
+  })
+
+  it('stands the alert down and logs an OPS message', () => {
+    const { result } = renderHook(() => useCommandState())
+
+    act(() => result.current.triggerAlert(true))
+    act(() => result.current.triggerAlert(false))
+
+    expect(result.current.alertActive).toBe(false)
+    const event = result.current.feed[0]
+    expect(event.severity).toBe('OPS')
+    expect(event.message).toBe(
+      'Citywide alert stood down — sectors returning to nominal.',
+    )
+  })
+})

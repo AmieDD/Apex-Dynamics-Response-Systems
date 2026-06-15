@@ -143,6 +143,37 @@ export function LeviathanRoster({
   selectedId,
   onSelect,
 }: LeviathanRosterProps): React.JSX.Element {
+  // Arrow keys cycle the selection through the roster (wrapping at the ends);
+  // Escape clears it. Focus follows the selection to the matching card so the
+  // keyboard path mirrors the visual one without a separate roving tabindex.
+  function handleKeyDown(event: React.KeyboardEvent<HTMLUListElement>): void {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp' && event.key !== 'Escape') {
+      return
+    }
+    event.preventDefault()
+
+    if (event.key === 'Escape') {
+      onSelect(null)
+      return
+    }
+    if (leviathans.length === 0) return
+
+    const delta = event.key === 'ArrowDown' ? 1 : -1
+    const current = leviathans.findIndex((lev) => lev.id === selectedId)
+    const nextIndex =
+      current === -1
+        ? delta === 1
+          ? 0
+          : leviathans.length - 1
+        : (current + delta + leviathans.length) % leviathans.length
+
+    onSelect(leviathans[nextIndex].id)
+    const buttons = event.currentTarget.querySelectorAll<HTMLButtonElement>(
+      ':scope > li > button',
+    )
+    buttons[nextIndex]?.focus()
+  }
+
   return (
     <section
       aria-label="Active leviathans"
@@ -152,12 +183,16 @@ export function LeviathanRoster({
         <h2 className="font-mono text-[10px] uppercase tracking-[0.3em] text-text-muted">
           Active Leviathans
         </h2>
-        <span className="font-mono text-xs tabular-nums text-text-muted">
-          {leviathans.length}
+        <span className="flex items-baseline gap-2 font-mono text-[9px] uppercase tracking-[0.15em] text-text-muted">
+          <span aria-hidden="true">↑↓ select · esc clear</span>
+          <span className="tabular-nums">{leviathans.length}</span>
         </span>
       </header>
 
-      <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
+      <ul
+        className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1"
+        onKeyDown={handleKeyDown}
+      >
         {leviathans.map((leviathan) => (
           <LeviathanCard
             key={leviathan.id}
