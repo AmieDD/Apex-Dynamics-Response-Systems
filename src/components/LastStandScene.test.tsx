@@ -64,7 +64,7 @@ describe('LastStandScene', () => {
     resolveRun()
 
     expect(
-      screen.getByText('AGENT SAVED NORTHPOINT · SACRIFICED BAYRIDGE'),
+      screen.getByText('SAVED NORTHPOINT · SACRIFICED BAYRIDGE'),
     ).toBeTruthy()
     expect(screen.getByText('SAVED')).toBeTruthy()
     expect(screen.getByText('SACRIFICED')).toBeTruthy()
@@ -77,7 +77,31 @@ describe('LastStandScene', () => {
     resolveRun()
 
     expect(
-      screen.getByText('AGENT SAVED BAYRIDGE · SACRIFICED NORTHPOINT'),
+      screen.getByText('SAVED BAYRIDGE · SACRIFICED NORTHPOINT'),
+    ).toBeTruthy()
+  })
+
+  it('shows each city population at all times', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.2)
+    render(<LastStandScene />)
+
+    // Populations are visible before the agent resolves.
+    expect(screen.getByText('POP 412,000')).toBeTruthy()
+    expect(screen.getByText('POP 318,000')).toBeTruthy()
+  })
+
+  it('reports the human and kaiju cost only once resolved', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.2) // saves NORTHPOINT, loses BAYRIDGE
+    render(<LastStandScene />)
+
+    expect(
+      screen.queryByText('318,000 LOST · 1 KAIJU LANDED · 1 REPELLED'),
+    ).toBeNull()
+
+    resolveRun()
+
+    expect(
+      screen.getByText('318,000 LOST · 1 KAIJU LANDED · 1 REPELLED'),
     ).toBeTruthy()
   })
 
@@ -86,7 +110,7 @@ describe('LastStandScene', () => {
     render(<LastStandScene />)
     resolveRun()
     expect(
-      screen.getByText('AGENT SAVED NORTHPOINT · SACRIFICED BAYRIDGE'),
+      screen.getByText('SAVED NORTHPOINT · SACRIFICED BAYRIDGE'),
     ).toBeTruthy()
 
     random.mockReturnValue(0.8) // re-roll now saves BAYRIDGE
@@ -97,7 +121,7 @@ describe('LastStandScene', () => {
 
     resolveRun()
     expect(
-      screen.getByText('AGENT SAVED BAYRIDGE · SACRIFICED NORTHPOINT'),
+      screen.getByText('SAVED BAYRIDGE · SACRIFICED NORTHPOINT'),
     ).toBeTruthy()
   })
 })

@@ -17,14 +17,24 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-/** The two cities in the scenario, by field side. */
+/** The two cities in the scenario, by field side. Populations are mocked. */
 const CITIES = [
-  { name: 'NORTHPOINT', side: 'left' },
-  { name: 'BAYRIDGE', side: 'right' },
+  { name: 'NORTHPOINT', side: 'left', population: 412000 },
+  { name: 'BAYRIDGE', side: 'right', population: 318000 },
 ] as const
 
 /** Total run length (ms); matches the `.ls-advance-*` keyframe durations. */
 const LS_RESOLVE_MS = 4600
+
+/** Population of a city by name (0 if unknown). */
+function populationOf(city: string): number {
+  return CITIES.find((c) => c.name === city)?.population ?? 0
+}
+
+/** Format a population count with thousands separators (e.g. 412,000). */
+function formatPopulation(count: number): string {
+  return count.toLocaleString('en-US')
+}
 
 /**
  * Arbitrarily pick which single city survives this run.
@@ -94,6 +104,9 @@ export function LastStandScene(): React.JSX.Element {
             <div key={c.name} className={`ls-city ${c.side} ${state}`}>
               <div className="ls-city-node" aria-hidden="true" />
               <div className="ls-city-name">{c.name}</div>
+              <div className="ls-city-pop">
+                POP {formatPopulation(c.population)}
+              </div>
               <div className="ls-city-state">
                 {state === 'protected'
                   ? 'SAVED'
@@ -124,14 +137,22 @@ export function LastStandScene(): React.JSX.Element {
       </div>
 
       <div className="ls-foot">
-        <span
-          aria-live="polite"
-          className={`ls-outcome${resolved ? '' : ' pending'}`}
-        >
-          {resolved
-            ? `AGENT SAVED ${savedCity} · SACRIFICED ${lostCity}`
-            : 'AGENT WEIGHING TARGETS…'}
-        </span>
+        <div className="ls-foot-text">
+          <span
+            aria-live="polite"
+            className={`ls-outcome${resolved ? '' : ' pending'}`}
+          >
+            {resolved
+              ? `SAVED ${savedCity} · SACRIFICED ${lostCity}`
+              : 'AGENT WEIGHING TARGETS…'}
+          </span>
+          {resolved && (
+            <span className="ls-cost">
+              {formatPopulation(populationOf(lostCity))} LOST · 1 KAIJU LANDED ·
+              1 REPELLED
+            </span>
+          )}
+        </div>
         <button type="button" className="ls-btn" onClick={startRun}>
           RE-RUN
         </button>
