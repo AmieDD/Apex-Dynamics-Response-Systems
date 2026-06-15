@@ -9,20 +9,36 @@ export interface DispatchPanelProps {
   dispatch: DispatchUnit[]
   /** Deploys one unit of the named asset. */
   onDispatch: (name: string) => void
+  /** Codename of the focused leviathan a dispatch will repel, or null. */
+  targetCodename?: string | null
 }
 
 export function DispatchPanel({
   dispatch,
   onDispatch,
+  targetCodename = null,
 }: DispatchPanelProps): React.JSX.Element {
   return (
     <section
       aria-label="Dispatch assets"
       className="flex h-full flex-col gap-2 rounded-md border border-border bg-surface-raised p-3"
     >
-      <h2 className="font-mono text-[10px] uppercase tracking-[0.3em] text-text-muted">
-        Dispatch
-      </h2>
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="font-mono text-[10px] uppercase tracking-[0.3em] text-text-muted">
+          Dispatch
+        </h2>
+        <span
+          className="font-mono text-[9px] uppercase tracking-[0.15em] text-text-muted"
+          style={targetCodename ? { color: 'rgb(var(--accent))' } : undefined}
+          title={
+            targetCodename
+              ? `Dispatches will repel ${targetCodename}`
+              : 'Select a leviathan to target dispatches'
+          }
+        >
+          {targetCodename ? `Target ▸ ${targetCodename}` : 'Target ▸ none'}
+        </span>
+      </div>
 
       <ul className="flex flex-1 flex-col gap-2">
         {dispatch.map((unit) => {

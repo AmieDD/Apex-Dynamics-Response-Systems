@@ -30,13 +30,23 @@ export function TopBar({
 
   return (
     <header className="flex items-center justify-between gap-4 border-b border-border bg-surface-raised px-4 py-3">
-      <div className="flex items-baseline gap-3">
-        <span className="font-mono text-xs uppercase tracking-[0.25em] text-text-muted">
-          APEX DYNAMICS
-        </span>
-        <h1 className="text-sm font-semibold uppercase tracking-[0.18em] text-text">
-          {title}
-        </h1>
+      <div className="flex items-center gap-3">
+        <img
+          src="/Clipzilla.png"
+          alt="Clipzilla — Apex Dynamics mascot"
+          title="Clipzilla"
+          width={40}
+          height={40}
+          className="h-10 w-10 shrink-0 rounded-md border border-border bg-surface object-contain"
+        />
+        <div className="flex items-baseline gap-3">
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-text-muted">
+            APEX DYNAMICS
+          </span>
+          <h1 className="text-sm font-semibold uppercase tracking-[0.18em] text-text">
+            {title}
+          </h1>
+        </div>
       </div>
 
       <div className="flex items-center gap-6">

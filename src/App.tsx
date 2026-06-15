@@ -11,6 +11,7 @@
 
 import CommandMap from './components/CommandMap'
 import { DispatchPanel } from './components/DispatchPanel'
+import { LastStandScene } from './components/LastStandScene'
 import { LeviathanRoster } from './components/LeviathanRoster'
 import { SignalFeed } from './components/SignalFeed'
 import { ThreatCondition } from './components/ThreatCondition'
@@ -31,7 +32,14 @@ function App(): React.JSX.Element {
     alertActive,
     triggerAlert,
     dispatchUnit,
+    reportLandfall,
+    reportStatus,
+    reportRange,
   } = useCommandState()
+
+  // The focused leviathan a dispatch will repel (null clears the target).
+  const selectedLeviathan =
+    leviathans.find((lev) => lev.id === selectedId) ?? null
 
   return (
     <div className="grid h-screen grid-rows-[auto_minmax(0,1fr)_auto] bg-surface text-text">
@@ -44,17 +52,26 @@ function App(): React.JSX.Element {
             threatCondition={threatCondition}
             threatLevel={threatLevel}
           />
-          <DispatchPanel dispatch={dispatch} onDispatch={dispatchUnit} />
+          <DispatchPanel
+            dispatch={dispatch}
+            onDispatch={dispatchUnit}
+            targetCodename={selectedLeviathan?.codename ?? null}
+          />
         </div>
 
-        {/* Center: command map hero (definite-height grid row resolves h-full). */}
+        {/* Center: command map hero with the last-stand scenario as a
+            top-left corner mini-map inset over the map. */}
         <div className="relative min-h-[20rem] overflow-hidden rounded-md border border-border lg:min-h-0">
           <CommandMap
             leviathans={leviathans}
             selectedId={selectedId}
             select={select}
             alertActive={alertActive}
+            reportLandfall={reportLandfall}
+            reportStatus={reportStatus}
+            reportRange={reportRange}
           />
+          <LastStandScene />
         </div>
 
         {/* Right rail: active leviathans roster + signal feed. */}
