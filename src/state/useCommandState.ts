@@ -13,9 +13,19 @@ import {
   makeSignalEvent,
   scheduleNext,
 } from '../mock/feed'
-import { createRoster, tickLeviathans } from '../mock/leviathans'
+import {
+  createRoster,
+  REPEL_KNOCKBACK_FRAC,
+  REPEL_KNOCKBACK_MAX,
+  tickLeviathans,
+} from '../mock/leviathans'
 import { maxThreat, threatRank, type ThreatLevel } from '../mock/severity'
-import type { DispatchUnit, Leviathan, SignalEvent } from '../mock/types'
+import type {
+  DispatchUnit,
+  Leviathan,
+  LeviathanStatus,
+  SignalEvent,
+} from '../mock/types'
 
 /** Initial dispatch assets and their capacities. */
 const INITIAL_DISPATCH: readonly DispatchUnit[] = [
@@ -69,6 +79,12 @@ export interface CommandState {
   triggerAlert: (active?: boolean) => void
   /** Deploys one unit of the named asset (decrements capacity, logs to feed). */
   dispatchUnit: (name: string) => void
+  /** Logs a leviathan reaching landfall (repelled + track reacquired). */
+  reportLandfall: (codename: string, target: string, startRangeKm: number) => void
+  /** Updates a leviathan's live inbound status band (from the map's advance). */
+  reportStatus: (id: string, status: LeviathanStatus) => void
+  /** Updates a leviathan's live remaining range to landfall (km). */
+  reportRange: (id: string, rangeKm: number) => void
 }
 
 export function useCommandState(): CommandState {
@@ -84,6 +100,18 @@ export function useCommandState(): CommandState {
   useEffect(() => {
     leviathansRef.current = leviathans
   }, [leviathans])
+
+  // Mirrors of the selection + dispatch state so dispatchUnit (an event
+  // handler) can read the freshest values without re-subscribing.
+  const selectedIdRef = useRef<string | null>(selectedId)
+  useEffect(() => {
+    selectedIdRef.current = selectedId
+  }, [selectedId])
+
+  const dispatchRef = useRef<DispatchUnit[]>(dispatch)
+  useEffect(() => {
+    dispatchRef.current = dispatch
+  }, [dispatch])
 
   const pushEvent = useCallback((event: SignalEvent): void => {
     setFeed((prev) => appendCapped(prev, event))
@@ -128,30 +156,92 @@ export function useCommandState(): CommandState {
 
   const dispatchUnit = useCallback(
     (name: string): void => {
-      setDispatch((prev) => {
-        const unit = prev.find((u) => u.name === name)
-        if (!unit || unit.available <= 0) {
-          pushEvent({
-            ...makeSignalEvent(leviathansRef.current),
-            severity: 'WARN',
-            message: `Dispatch denied: ${name} at zero capacity.`,
-            timestamp: Date.now(),
-          })
-          return prev
-        }
+      const unit = dispatchRef.current.find((u) => u.name === name)
+      if (!unit || unit.available <= 0) {
         pushEvent({
           ...makeSignalEvent(leviathansRef.current),
-          severity: 'OPS',
-          message: `Dispatch confirmed: ${name} deployed (${unit.available - 1}/${unit.capacity} remaining).`,
+          severity: 'WARN',
+          message: `Dispatch denied: ${name} at zero capacity.`,
           timestamp: Date.now(),
         })
-        return prev.map((u) =>
-          u.name === name ? { ...u, available: u.available - 1 } : u,
+        return
+      }
+
+      // A dispatch targets the focused leviathan, shoving it back along its
+      // inbound track; with nothing selected the asset deploys untargeted.
+      const target = leviathansRef.current.find(
+        (lev) => lev.id === selectedIdRef.current,
+      )
+      if (target) {
+        setLeviathans((roster) =>
+          roster.map((lev) =>
+            lev.id === target.id
+              ? {
+                  ...lev,
+                  repel: Math.min(
+                    REPEL_KNOCKBACK_MAX,
+                    lev.repel + REPEL_KNOCKBACK_FRAC,
+                  ),
+                }
+              : lev,
+          ),
         )
+      }
+
+      setDispatch((prev) =>
+        prev.map((u) =>
+          u.name === name
+            ? { ...u, available: Math.max(0, u.available - 1) }
+            : u,
+        ),
+      )
+
+      pushEvent({
+        ...makeSignalEvent(leviathansRef.current),
+        severity: 'OPS',
+        message: target
+          ? `${name} engaged ${target.codename.toUpperCase()} — repelled toward open water (${unit.available - 1}/${unit.capacity} remaining).`
+          : `Dispatch confirmed: ${name} deployed (${unit.available - 1}/${unit.capacity} remaining).`,
+        timestamp: Date.now(),
       })
     },
     [pushEvent],
   )
+
+  const reportLandfall = useCallback(
+    (codename: string, target: string, startRangeKm: number): void => {
+      pushEvent({
+        ...makeSignalEvent(leviathansRef.current),
+        severity: 'CRIT',
+        message: `${codename.toUpperCase()} reached landfall at ${target} — repelled. Track reacquired at ${Math.round(startRangeKm)}km.`,
+        timestamp: Date.now(),
+      })
+    },
+    [pushEvent],
+  )
+
+  // Adopts the live inbound band the map derives from each leviathan's advance,
+  // so the roster rail and the map never disagree. No-ops when unchanged.
+  const reportStatus = useCallback(
+    (id: string, status: LeviathanStatus): void => {
+      setLeviathans((prev) =>
+        prev.map((lev) =>
+          lev.id === id && lev.status !== status ? { ...lev, status } : lev,
+        ),
+      )
+    },
+    [],
+  )
+
+  // Adopts the live remaining range the map derives from each leviathan's
+  // advance, so the roster's Range readout counts down with the inbound band.
+  const reportRange = useCallback((id: string, rangeKm: number): void => {
+    setLeviathans((prev) =>
+      prev.map((lev) =>
+        lev.id === id && lev.range !== rangeKm ? { ...lev, range: rangeKm } : lev,
+      ),
+    )
+  }, [])
 
   const threatLevel = useMemo(() => deriveThreatLevel(leviathans), [leviathans])
   const threatCondition = useMemo(() => threatRank(threatLevel) + 1, [threatLevel])
@@ -168,5 +258,8 @@ export function useCommandState(): CommandState {
     alertActive,
     triggerAlert,
     dispatchUnit,
+    reportLandfall,
+    reportStatus,
+    reportRange,
   }
 }

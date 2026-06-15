@@ -1,13 +1,17 @@
 // Command-center top bar: live wall clock + color-coded Threat Level badge.
 // Presentational only — receives its slice of state via props so App can compose it.
 
-import { threatColor, threatLabel, type ThreatLevel } from '../mock/severity'
+import { threatColor, threatLabel, threatRank, type ThreatLevel } from '../mock/severity'
 
 export interface TopBarProps {
   /** Current wall-clock time (epoch ms), updated every second by the parent. */
   now: number
+  /** Numeric threat condition code (1 = Dormant ... 5 = Cataclysm). */
+  threatCondition: number
   /** Highest active threat level on the Dormant -> Cataclysm scale. */
   threatLevel: ThreatLevel
+  /** Whether a citywide alert is active; drives the mascot's alert pose. */
+  alertActive: boolean
   /** Optional headline; defaults to the network name. */
   title?: string
 }
@@ -21,22 +25,104 @@ function formatClock(epochMs: number): string {
   return `${hh}:${mm}:${ss}`
 }
 
+/** Self-contained kaiju badge shown if a Clipzilla pose fails to load, so the
+ *  brand mark degrades gracefully instead of a broken-image glyph. Inlined as a
+ *  data URI — no extra network request and no dependency on a real file. */
+const MASCOT_FALLBACK = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">` +
+    `<path d="M11 12 8 5 15 10Z" fill="#e6edf3"/>` +
+    `<path d="M29 12 32 5 25 10Z" fill="#e6edf3"/>` +
+    `<ellipse cx="20" cy="22" rx="13" ry="12" fill="#863bff"/>` +
+    `<circle cx="15" cy="20" r="3.5" fill="#fff"/>` +
+    `<circle cx="25" cy="20" r="3.5" fill="#fff"/>` +
+    `<circle cx="15" cy="20.5" r="1.6" fill="#0d1117"/>` +
+    `<circle cx="25" cy="20.5" r="1.6" fill="#0d1117"/>` +
+    `<path d="M15 28Q20 32 25 28" stroke="#0d1117" stroke-width="1.5" stroke-linecap="round"/>` +
+    `</svg>`,
+)}`
+
+/** Picks the Clipzilla pose from command-center state. An active citywide alert
+ *  takes precedence over threat level, so the beacon always shows during an
+ *  alert; otherwise Critical/Cataclysm shows the charging pose and calmer
+ *  levels show the default happy mascot. `ringColor` is the threat hue to frame
+ *  the mascot with during high-threat/alert states (null = calm, neutral). */
+function mascotPose(
+  threatLevel: ThreatLevel,
+  alertActive: boolean,
+): { src: string; alt: string; alarm: boolean; ringColor: string | null } {
+  if (alertActive) {
+    return {
+      src: '/ClipzillaAlarm.png',
+      alt: 'Clipzilla raising an alert beacon — citywide alert active',
+      alarm: true,
+      ringColor: threatColor('Critical'),
+    }
+  }
+  if (threatRank(threatLevel) >= threatRank('Critical')) {
+    return {
+      src: '/ClipzillaAngry.png',
+      alt: `Clipzilla on the offensive — ${threatLabel(threatLevel)} threat`,
+      alarm: false,
+      ringColor: threatColor(threatLevel),
+    }
+  }
+  return {
+    src: '/Clipzilla.png',
+    alt: 'Clipzilla — Apex Dynamics mascot',
+    alarm: false,
+    ringColor: null,
+  }
+}
+
 export function TopBar({
   now,
+  threatCondition,
   threatLevel,
+  alertActive,
   title = 'KAIJU DEFENSE NETWORK',
 }: TopBarProps): React.JSX.Element {
   const color = threatColor(threatLevel)
+  const mascot = mascotPose(threatLevel, alertActive)
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-border bg-surface-raised px-4 py-3">
-      <div className="flex items-baseline gap-3">
-        <span className="font-mono text-xs uppercase tracking-[0.25em] text-text-muted">
-          APEX DYNAMICS
-        </span>
-        <h1 className="text-sm font-semibold uppercase tracking-[0.18em] text-text">
-          {title}
-        </h1>
+    <header className="kdn-topbar flex items-center justify-between gap-4 px-4 py-3">
+      <div className="flex items-center gap-3">
+        <img
+          key={mascot.src}
+          src={mascot.src}
+          alt={mascot.alt}
+          title="Clipzilla"
+          width={40}
+          height={40}
+          onError={(e) => {
+            // Swap to the inline badge once; clearing onerror prevents a loop
+            // if the fallback itself ever fails.
+            const img = e.currentTarget
+            if (img.src !== MASCOT_FALLBACK) {
+              img.onerror = null
+              img.src = MASCOT_FALLBACK
+            }
+          }}
+          className={`kdn-mascot h-10 w-10 shrink-0 rounded-md border bg-surface object-contain${
+            mascot.ringColor ? '' : ' border-border'
+          }${mascot.alarm ? ' kdn-mascot--alarm' : ''}`}
+          style={
+            mascot.ringColor
+              ? {
+                  borderColor: mascot.ringColor,
+                  boxShadow: `0 0 0 2px ${mascot.ringColor}, 0 0 10px ${mascot.ringColor}80`,
+                }
+              : undefined
+          }
+        />
+        <div className="flex items-baseline gap-3">
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-text-muted">
+            APEX DYNAMICS
+          </span>
+          <h1 className="text-sm font-semibold uppercase tracking-[0.18em] text-text">
+            {title}
+          </h1>
+        </div>
       </div>
 
       <div className="flex items-center gap-6">
@@ -50,6 +136,23 @@ export function TopBar({
           >
             {formatClock(now)}
           </time>
+        </div>
+
+        <div className="flex flex-col items-end leading-none">
+          <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-text-muted">
+            Threatcon
+          </span>
+          <span
+            // Re-keying on the value remounts the span so the bump animation
+            // replays each time the threat condition shifts, drawing the eye to
+            // an escalation without any state in this presentational component.
+            key={threatCondition}
+            className="kdn-threatcon font-mono text-xl font-bold tabular-nums"
+            style={{ color }}
+            aria-label={`Threat condition ${threatCondition} of 5`}
+          >
+            {threatCondition}
+          </span>
         </div>
 
         <div className="flex flex-col items-end leading-none">

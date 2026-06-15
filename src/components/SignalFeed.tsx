@@ -13,8 +13,9 @@ export interface SignalFeedProps {
 /** Severity accent colors. Pulled from theme tokens; never the only signal. */
 const SEVERITY_COLOR: Record<SignalSeverity, string> = {
   INFO: 'rgb(var(--accent))',
-  WARN: 'var(--threat-critical)',
+  WARN: 'var(--threat-elevated)',
   OPS: 'var(--threat-dormant)',
+  CRIT: 'var(--threat-critical)',
 }
 
 /** Formats epoch ms as a fixed-width HH:MM:SS string. */

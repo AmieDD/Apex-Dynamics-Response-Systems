@@ -2,12 +2,24 @@
 // card surfaces class numeral, archetype, key telemetry, status, and an HP bar
 // tinted by the leviathan's threat level (color paired with a text label).
 
+import { etaToLandfall, formatEta } from '../mock/leviathans'
 import {
   threatColor,
   threatLabel,
   type ThreatLevel,
 } from '../mock/severity'
-import type { Leviathan } from '../mock/types'
+import type { Leviathan, LeviathanStatus } from '../mock/types'
+
+/** Proximity-urgency tint for each inbound status band. Reuses the threat
+    palette as a shared urgency vocabulary; the status text label always rides
+    alongside the color so it is never the only signal (DR-04). */
+const STATUS_BAND_COLOR: Record<LeviathanStatus, string> = {
+  SUBMERGED: 'rgb(var(--text-muted))',
+  INBOUND: 'var(--threat-stirring)',
+  SURFACED: 'var(--threat-elevated)',
+  LANDFALL: 'var(--threat-critical)',
+  CONTAINED: 'var(--threat-dormant)',
+}
 
 export interface LeviathanRosterProps {
   /** Live leviathan roster. */
@@ -18,13 +30,27 @@ export interface LeviathanRosterProps {
   onSelect: (id: string | null) => void
 }
 
-function Stat({ label, value }: { label: string; value: string }): React.JSX.Element {
+function Stat({
+  label,
+  value,
+  valueColor,
+}: {
+  label: string
+  value: string
+  /** Optional inline tint for the value (e.g. the status-band color). */
+  valueColor?: string
+}): React.JSX.Element {
   return (
     <div className="flex flex-col leading-tight">
       <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-text-muted">
         {label}
       </span>
-      <span className="font-mono text-xs tabular-nums text-text">{value}</span>
+      <span
+        className="font-mono text-xs tabular-nums text-text"
+        style={valueColor ? { color: valueColor } : undefined}
+      >
+        {value}
+      </span>
     </div>
   )
 }
@@ -40,8 +66,16 @@ function LeviathanCard({
 }): React.JSX.Element {
   const threat: ThreatLevel = leviathan.threat
   const accent = threatColor(threat)
+  const band = STATUS_BAND_COLOR[leviathan.status]
+  // Time-to-landfall the inbound track already implies, surfaced as a readout
+  // alongside the remaining range; a dispatch visibly pushes this back.
+  const eta = formatEta(etaToLandfall(leviathan.range, leviathan.speed))
   const hpRatio = leviathan.hpMax > 0 ? leviathan.hp / leviathan.hpMax : 0
   const hpPct = Math.max(0, Math.min(100, Math.round(hpRatio * 100)))
+  // A dispatch shoves the targeted leviathan back; `repel` decays each
+  // heartbeat, so this briefly flashes the card to echo the map's REPELLED
+  // flag, then clears itself.
+  const repelled = leviathan.repel > 0.001
 
   return (
     <li>
@@ -49,7 +83,9 @@ function LeviathanCard({
         type="button"
         aria-pressed={selected}
         onClick={() => onSelect(selected ? null : leviathan.id)}
-        className="w-full rounded-sm border bg-surface px-3 py-2.5 text-left transition-colors hover:border-accent/60"
+        className={`w-full rounded-sm border bg-surface px-3 py-2.5 text-left transition-colors hover:border-accent/60${
+          repelled ? ' kdn-roster-card--repelled' : ''
+        }`}
         style={{
           borderColor: selected ? accent : 'rgb(var(--border))',
           boxShadow: selected ? `inset 0 0 0 1px ${accent}` : undefined,
@@ -68,11 +104,12 @@ function LeviathanCard({
           </span>
         </div>
 
-        <div className="mt-2 grid grid-cols-4 gap-2">
-          <Stat label="Range" value={`${Math.round(leviathan.range)}km`} />
+        <div className="mt-2 grid grid-cols-5 gap-2">
+          <Stat label="To Target" value={`${Math.round(leviathan.range)}km`} valueColor={band} />
+          <Stat label="ETA" value={eta} valueColor={band} />
           <Stat label="Height" value={`${Math.round(leviathan.height)}m`} />
           <Stat label="Speed" value={`${Math.round(leviathan.speed)}km/h`} />
-          <Stat label="Status" value={leviathan.status} />
+          <Stat label="Status" value={leviathan.status} valueColor={band} />
         </div>
 
         <div className="mt-2 flex items-center gap-2">
@@ -106,6 +143,37 @@ export function LeviathanRoster({
   selectedId,
   onSelect,
 }: LeviathanRosterProps): React.JSX.Element {
+  // Arrow keys cycle the selection through the roster (wrapping at the ends);
+  // Escape clears it. Focus follows the selection to the matching card so the
+  // keyboard path mirrors the visual one without a separate roving tabindex.
+  function handleKeyDown(event: React.KeyboardEvent<HTMLUListElement>): void {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp' && event.key !== 'Escape') {
+      return
+    }
+    event.preventDefault()
+
+    if (event.key === 'Escape') {
+      onSelect(null)
+      return
+    }
+    if (leviathans.length === 0) return
+
+    const delta = event.key === 'ArrowDown' ? 1 : -1
+    const current = leviathans.findIndex((lev) => lev.id === selectedId)
+    const nextIndex =
+      current === -1
+        ? delta === 1
+          ? 0
+          : leviathans.length - 1
+        : (current + delta + leviathans.length) % leviathans.length
+
+    onSelect(leviathans[nextIndex].id)
+    const buttons = event.currentTarget.querySelectorAll<HTMLButtonElement>(
+      ':scope > li > button',
+    )
+    buttons[nextIndex]?.focus()
+  }
+
   return (
     <section
       aria-label="Active leviathans"
@@ -115,12 +183,16 @@ export function LeviathanRoster({
         <h2 className="font-mono text-[10px] uppercase tracking-[0.3em] text-text-muted">
           Active Leviathans
         </h2>
-        <span className="font-mono text-xs tabular-nums text-text-muted">
-          {leviathans.length}
+        <span className="flex items-baseline gap-2 font-mono text-[9px] uppercase tracking-[0.15em] text-text-muted">
+          <span aria-hidden="true">↑↓ select · esc clear</span>
+          <span className="tabular-nums">{leviathans.length}</span>
         </span>
       </header>
 
-      <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1">
+      <ul
+        className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1"
+        onKeyDown={handleKeyDown}
+      >
         {leviathans.map((leviathan) => (
           <LeviathanCard
             key={leviathan.id}

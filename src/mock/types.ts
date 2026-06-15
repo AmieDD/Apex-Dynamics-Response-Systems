@@ -20,7 +20,7 @@ export interface Leviathan {
   classNumeral: string
   /** Behavioral archetype, e.g. "Abyssal Colossus". */
   archetype: string
-  /** Engagement/detection range in kilometers. */
+  /** Live remaining range to landfall (km); map-owned, derived from the track. */
   range: number
   /** Height in meters. */
   height: number
@@ -32,16 +32,29 @@ export interface Leviathan {
   hpMax: number
   /** Current operational status. */
   status: LeviathanStatus
-  /** Longitude (WGS84). */
+  /** Longitude (WGS84). Spawn position; live position is derived from sim time. */
   lng: number
-  /** Latitude (WGS84). */
+  /** Latitude (WGS84). Spawn position; live position is derived from sim time. */
   lat: number
   /** Current threat level on the Dormant -> Cataclysm scale. */
   threat: ThreatLevel
+  /** Projected travel bearing in degrees (0 = north, clockwise to 360). */
+  heading: number
+  /** Inbound-track spawn point (open water) the leviathan advances from. */
+  from: { lng: number; lat: number }
+  /** Inbound-track landfall target the leviathan advances toward. */
+  to: { lng: number; lat: number }
+  /** Human-readable landfall target, e.g. "SAN FRANCISCO". */
+  target: string
+  /** Engagement range (km) at spawn; the track's full length in range terms. */
+  startRange: number
+  /** Dispatch knockback: track fraction the leviathan is currently shoved back
+      (0 = closing normally), raised by dispatches and decaying each tick. */
+  repel: number
 }
 
 /** Severity tag for a Signal Feed entry. */
-export type SignalSeverity = 'INFO' | 'WARN' | 'OPS'
+export type SignalSeverity = 'INFO' | 'WARN' | 'OPS' | 'CRIT'
 
 /** A single timestamped event in the Signal Feed. */
 export interface SignalEvent {

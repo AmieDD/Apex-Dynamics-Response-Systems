@@ -1,6 +1,8 @@
 # Apex Dynamics Response Systems
 ## Project Titan Watch: A mocked emergency-response command-center prototype
 
+<img src="public/Clipzilla.png" alt="Clipzilla, the Apex Dynamics Response Systems mascot, holding a tablet displaying the command-center dashboard" width="320">
+
 ## What this repo is
 Apex Dynamics Response Systems is a command-center prototype for an emergency disaster response scenario. A Apex Dynamics Response Systems — fuses imagery, sensor networks, incident reports, and public social signals into a single situational picture for first responders: damage assessment, response prioritization, evacuation planning, and shared situational awareness.
 The prototype is a command-center view — situational dashboard, multi-source feed, severity telemetry. Mocked feeds. No live connections.

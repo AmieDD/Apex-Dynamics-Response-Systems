@@ -13,7 +13,13 @@
   --border: 48 54 61; /* #30363D hairline borders */
   --text: 230 237 243; /* #E6EDF3 primary text */
   --text-muted: 139 148 158; /* #8B949E secondary/telemetry text */
-  --accent: 88 166 255; /* #58A6FF interactive accent */
+  --accent: 167 139 250; /* #A78BFA brand-violet interactive accent */
+
+  /* Command-center top bar: a brand-purple band, lighter than the near-black
+     body so the header reads clearly. Triplet form feeds rgb()/<alpha>. */
+  --topbar-from: 74 45 130; /* #4A2D82 vivid brand purple, toward #863bff */
+  --topbar-to: 54 33 94; /* #36215E darker purple, gradient tail */
+  --topbar-border: 134 59 255; /* #863BFF brand-purple hairline */
 
   /* Threat scale: Dormant -> Stirring -> Elevated -> Critical -> Cataclysm. */
   --threat-dormant: #10b981;
@@ -23,6 +29,19 @@
   --threat-cataclysm: #b91c1c;
 
   color-scheme: dark;
+}
+
+/* Command-center top bar (TopBar.tsx).
+   A brand-purple gradient band with a purple hairline underline. Distinct from
+   the near-black body so the header reads clearly; primary --text stays legible
+   on it (contrast ~12:1). */
+.kdn-topbar {
+  background: linear-gradient(
+    180deg,
+    rgb(var(--topbar-from)) 0%,
+    rgb(var(--topbar-to)) 100%
+  );
+  border-bottom: 1px solid rgb(var(--topbar-border) / 0.7);
 }
 
 /* Command map markers (CommandMap.tsx).
@@ -110,6 +129,663 @@
   }
 }
 
+/* Last-stand scenario inset (LastStandScene.tsx).
+   Mirrors the reference scene: a 300x200 panel pinned to the map's top-left
+   corner, a gridlined field with two diamond city nodes, and a triangular
+   leviathan advancing on each from opposite edges. Every run one lane is
+   `repelled` (PROTECTED, shield pulse) and the other `impact` (OVERRUN, node
+   shake). Motion is fixed-shape CSS keyframes restarted by remounting
+   `.ls-field` on a runId key. Colors map to the repo theme tokens; structure
+   matches the reference 1:1. Honors prefers-reduced-motion (overrides below). */
+.ls-panel {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  display: flex;
+  width: 300px;
+  height: 200px;
+  flex-direction: column;
+  background: rgb(var(--surface) / 0.92);
+  border: 1px solid rgb(var(--border));
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.ls-head {
+  display: flex;
+  align-items: flex-start;
+  padding: 7px 10px 6px;
+  border-bottom: 1px solid rgb(var(--border) / 0.6);
+}
+
+.ls-head-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.ls-title {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: rgb(var(--text));
+}
+
+.ls-sub {
+  margin-top: 2px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgb(var(--text-muted));
+}
+
+.ls-field {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ls-gridlines {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+  background:
+    linear-gradient(rgb(var(--accent) / 0.08) 1px, transparent 1px) 0 0 / 100%
+      25px,
+    linear-gradient(90deg, rgb(var(--accent) / 0.08) 1px, transparent 1px) 0 0 /
+      25px 100%;
+}
+
+/* --- city nodes --- */
+.ls-city {
+  position: absolute;
+  top: 50%;
+  width: 76px;
+  text-align: center;
+  transform: translateY(-58%);
+}
+
+.ls-city.left {
+  left: 38px;
+}
+
+.ls-city.right {
+  right: 38px;
+}
+
+.ls-city-node {
+  width: 14px;
+  height: 14px;
+  margin: 0 auto;
+  border: 1px solid rgb(var(--text-muted));
+  background: rgb(var(--text-muted) / 0.12);
+  transform: rotate(45deg);
+  transition:
+    border-color 300ms ease,
+    background 300ms ease,
+    box-shadow 300ms ease;
+}
+
+.ls-city-name {
+  margin-top: 7px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgb(var(--text));
+}
+
+.ls-city-pop {
+  margin-top: 2px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgb(var(--text-muted));
+}
+
+.ls-city-state {
+  min-height: 9px;
+  margin-top: 2px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.ls-city.protected .ls-city-node {
+  border-color: var(--threat-dormant);
+  background: color-mix(in srgb, var(--threat-dormant) 22%, transparent);
+  box-shadow: 0 0 16px
+    color-mix(in srgb, var(--threat-dormant) 65%, transparent);
+}
+
+.ls-city.protected .ls-city-state {
+  color: var(--threat-dormant);
+}
+
+/* Agent commits its save: the chosen city locks in with a persistent green
+   highlight halo (the dispatched "save") plus a one-shot expanding ring that
+   reads as the agent SENDING the save out. The halo is a static end-state so it
+   stays visible under reduced motion; the expanding ring is motion-only. */
+.ls-city.protected::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -7px;
+  right: -10px;
+  bottom: -7px;
+  left: -10px;
+  border: 1px solid var(--threat-dormant);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--threat-dormant) 9%, transparent);
+  box-shadow:
+    0 0 18px color-mix(in srgb, var(--threat-dormant) 50%, transparent),
+    inset 0 0 12px color-mix(in srgb, var(--threat-dormant) 20%, transparent);
+  pointer-events: none;
+  animation: ls-save-halo 500ms ease-out;
+}
+
+@keyframes ls-save-halo {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.ls-city.protected::after {
+  content: '';
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 1px solid var(--threat-dormant);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  animation: ls-save-dispatch 720ms ease-out;
+}
+
+@keyframes ls-save-dispatch {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.4);
+  }
+}
+
+.ls-city.overrun .ls-city-node {
+  border-color: var(--threat-critical);
+  background: color-mix(in srgb, var(--threat-critical) 25%, transparent);
+  box-shadow: 0 0 12px
+    color-mix(in srgb, var(--threat-critical) 55%, transparent);
+  animation: ls-overrun-shake 240ms ease 2;
+}
+
+.ls-city.overrun .ls-city-state {
+  color: var(--threat-critical);
+}
+
+@keyframes ls-overrun-shake {
+  25% {
+    transform: rotate(45deg) translate(1.5px, -1px);
+  }
+  75% {
+    transform: rotate(45deg) translate(-1.5px, 1px);
+  }
+}
+
+/* Shield pulse on the saved city, timed to the repel moment (~2.7s of 4.6s). */
+.ls-shield {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1px solid var(--threat-dormant);
+  border-radius: 50%;
+  opacity: 0;
+  animation: ls-shield-pulse 900ms ease-out 2.7s 2;
+}
+
+@keyframes ls-shield-pulse {
+  0% {
+    transform: scale(0.3);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* --- leviathans --- */
+/* Same animation shapes every run; only which side gets `repelled` vs `impact`
+   changes. Distances are fixed px so the path is identical run to run. */
+.ls-mon {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  margin-top: -8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.ls-mon.left {
+  left: 6px;
+  --dir: 1;
+}
+
+.ls-mon.right {
+  right: 6px;
+  --dir: -1;
+}
+
+.ls-mon-glyph {
+  font-size: 11px;
+  line-height: 1;
+  color: var(--threat-critical);
+  text-shadow: 0 0 7px
+    color-mix(in srgb, var(--threat-critical) 70%, transparent);
+}
+
+.ls-mon.left .ls-mon-glyph {
+  transform: rotate(90deg);
+}
+
+.ls-mon.right .ls-mon-glyph {
+  transform: rotate(-90deg);
+}
+
+.ls-mon-tag {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 6px;
+  letter-spacing: 0.12em;
+  color: rgb(var(--text-muted));
+}
+
+.ls-mon.impact {
+  animation: ls-advance-impact 4.6s linear forwards;
+}
+
+.ls-mon.repelled {
+  animation: ls-advance-repel 4.6s linear forwards;
+}
+
+@keyframes ls-advance-impact {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  78% {
+    transform: translateX(calc(var(--dir) * 56px));
+    opacity: 1;
+  }
+  82% {
+    opacity: 0.2;
+  }
+  86% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(var(--dir) * 56px));
+    opacity: 0;
+  }
+}
+
+@keyframes ls-advance-repel {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  58% {
+    transform: translateX(calc(var(--dir) * 46px));
+    opacity: 1;
+  }
+  72% {
+    transform: translateX(calc(var(--dir) * 14px));
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(var(--dir) * -18px));
+    opacity: 0;
+  }
+}
+
+/* --- footer --- */
+.ls-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-top: 1px solid rgb(var(--border) / 0.6);
+}
+
+.ls-foot-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ls-outcome {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.1em;
+  color: rgb(var(--accent));
+}
+
+.ls-cost {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  color: var(--threat-critical);
+}
+
+.ls-outcome.pending {
+  color: rgb(var(--text-muted));
+  animation: ls-blink 1.6s steps(2) infinite;
+}
+
+@keyframes ls-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.ls-btn {
+  flex: none;
+  padding: 4px 8px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgb(var(--text));
+  background: rgb(var(--surface-raised));
+  border: 1px solid rgb(var(--border));
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.ls-btn:hover {
+  border-color: rgb(var(--accent));
+  color: rgb(var(--accent));
+}
+
+/* LANDFALL flag flown above a leviathan marker that has reached its target
+   (CommandMap.tsx). The threat color is supplied inline as `currentColor`. */
+.kdn-marker-landfall {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-bottom: 3px;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 0 6px currentColor;
+  pointer-events: none;
+  animation: kdn-landfall-flash 900ms ease-in-out infinite;
+}
+
+@keyframes kdn-landfall-flash {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* REPELLED flag flown above a leviathan marker actively shoved back toward open
+   water by a dispatch (CommandMap.tsx). Rendered in accent violet — our defensive
+   action — so it reads distinctly from the threat-colored LANDFALL flag, and
+   takes its place while the knockback decays. */
+.kdn-marker-repelled {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-bottom: 3px;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  white-space: nowrap;
+  color: rgb(var(--accent));
+  text-shadow: 0 0 6px rgb(var(--accent) / 0.8);
+  pointer-events: none;
+  animation: kdn-repelled-flash 700ms ease-in-out infinite;
+}
+
+/* Brief recoil on the dot while repelled. Uses transform only, so the
+   selection ring (a box-shadow) survives for a selected + repelled leviathan —
+   the common case, since a dispatch targets the selected one. */
+.kdn-marker--repelled .kdn-marker-dot {
+  animation: kdn-marker-shove 1200ms ease-in-out infinite;
+}
+
+@keyframes kdn-repelled-flash {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes kdn-marker-shove {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(-2px);
+  }
+  60% {
+    transform: translateX(1px);
+  }
+}
+
+/* Dispatch-target hint flown below the selected leviathan marker
+   (CommandMap.tsx). The selected leviathan is what a dispatch will repel, so
+   this mirrors the Dispatch panel's "Target ▸ {codename}" header back onto the
+   map, making the target discoverable without reading the rail. Accent violet —
+   our defensive-action color — matching the REPELLED flag it often precedes.
+   Sits below the dot so it never collides with the LANDFALL or REPELLED flags
+   flown above. */
+.kdn-marker-target {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-top: 3px;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  white-space: nowrap;
+  color: rgb(var(--accent));
+  text-shadow: 0 0 6px rgb(var(--accent) / 0.8);
+  pointer-events: none;
+  animation: kdn-target-in 240ms ease-out;
+}
+
+@keyframes kdn-target-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* THREATCON readout (TopBar): a brief scale-and-glow bump that replays whenever
+   the number's keyed span remounts on a threat-condition change, echoing the
+   left-rail ladder's escalation without any component state. */
+.kdn-threatcon {
+  display: inline-block;
+  animation: kdn-threatcon-bump 600ms ease-out;
+}
+
+@keyframes kdn-threatcon-bump {
+  0% {
+    transform: scale(1);
+    text-shadow: none;
+  }
+  35% {
+    transform: scale(1.35);
+    text-shadow: 0 0 10px currentColor;
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: none;
+  }
+}
+
+/* Marker flag legend (CommandMap.tsx): a compact key for the coded flags flown
+   on the map markers, pinned to the map's bottom-right corner so the flag
+   vocabulary is self-documenting. Non-interactive so it never blocks panning. */
+.kdn-map-legend {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid rgb(var(--border));
+  border-radius: 4px;
+  background: rgb(var(--surface) / 0.82);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+
+.kdn-legend-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.kdn-legend-key {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+}
+
+.kdn-legend-key--target,
+.kdn-legend-key--repelled {
+  color: rgb(var(--accent));
+}
+
+.kdn-legend-key--landfall {
+  color: var(--threat-critical);
+}
+
+.kdn-legend-text {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: rgb(var(--text-muted));
+}
+
+/* Roster card whose leviathan is actively repelled by a dispatch
+   (LeviathanRoster.tsx). A brief accent-violet background wash echoes the map's
+   REPELLED flag so the rail reflects the same dispatch action, then clears
+   itself as the knockback decays. The wash sits behind the card content and
+   leaves the threat-colored selection border untouched. */
+.kdn-roster-card--repelled {
+  animation: kdn-roster-repel 900ms ease-in-out infinite;
+}
+
+@keyframes kdn-roster-repel {
+  0%,
+  100% {
+    background-color: rgb(var(--surface));
+  }
+  50% {
+    background-color: rgb(var(--accent) / 0.18);
+  }
+}
+
+/* Top-bar mascot (TopBar.tsx).
+   Clipzilla reacts to command-center state: the happy pose at calm threat
+   levels, a charging pose at Critical/Cataclysm, and an alert-beacon pose while
+   a citywide alert is active. The <img> is keyed on its src, so each pose change
+   replays a short fade/scale-in. The alarm pose adds a looping red glow pulse.
+   Both honor prefers-reduced-motion (overrides below). */
+.kdn-mascot {
+  animation: kdn-mascot-in 240ms ease-out;
+}
+
+.kdn-mascot--alarm {
+  animation:
+    kdn-mascot-in 240ms ease-out,
+    kdn-mascot-alarm 1100ms ease-in-out 240ms infinite;
+}
+
+@keyframes kdn-mascot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes kdn-mascot-alarm {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 5px var(--threat-critical));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .kdn-pulse-ring {
     animation: none;
@@ -120,5 +796,64 @@
   .kdn-alert-scrim {
     animation: none;
     opacity: 0.85;
+  }
+
+  .kdn-marker-landfall {
+    animation: none;
+    opacity: 1;
+  }
+
+  .kdn-marker-repelled {
+    animation: none;
+    opacity: 1;
+  }
+
+  .kdn-marker--repelled .kdn-marker-dot {
+    animation: none;
+  }
+
+  .kdn-marker-target {
+    animation: none;
+  }
+
+  .kdn-threatcon {
+    animation: none;
+  }
+
+  .kdn-roster-card--repelled {
+    animation: none;
+  }
+
+  /* Skip the advance: the outcome is conveyed by node color + SAVED /
+     SACRIFICED labels and the resolved read-out, so no travel is needed. */
+  .ls-mon.impact,
+  .ls-mon.repelled {
+    animation: none;
+  }
+
+  .ls-city.overrun .ls-city-node {
+    animation: none;
+  }
+
+  .ls-shield {
+    animation: none;
+  }
+
+  /* Keep the static save halo (end-state values), drop the expanding ring. */
+  .ls-city.protected::before {
+    animation: none;
+  }
+
+  .ls-city.protected::after {
+    animation: none;
+  }
+
+  .ls-outcome.pending {
+    animation: none;
+  }
+
+  .kdn-mascot,
+  .kdn-mascot--alarm {
+    animation: none;
   }
 }

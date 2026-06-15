@@ -21,14 +21,40 @@ interface RosterSpec {
   archetype: string
   status: LeviathanStatus
   threat: ThreatLevel
+  /** Inbound-track spawn point (open water). */
+  from: { lng: number; lat: number }
+  /** Inbound-track landfall target. */
+  to: { lng: number; lat: number }
+  /** Human-readable landfall target name. */
+  target: string
+  /** Engagement range (km) at spawn; the track's full length. */
+  startRange: number
 }
 
-/** Curated roster identity; numeric stats are seeded around these anchors. */
+/** Curated roster identity; numeric stats are seeded around these anchors.
+    Track endpoints are real SF-Bay coordinates so each leviathan advances
+    from open water toward a named coastal target. */
 const ROSTER: readonly RosterSpec[] = [
-  { codename: 'Gorathos', archetype: 'Abyssal Colossus', status: 'LANDFALL', threat: 'Cataclysm' },
-  { codename: 'Vespyra', archetype: 'Tempest Wyrm', status: 'INBOUND', threat: 'Critical' },
-  { codename: 'Terrakon', archetype: 'Tectonic Behemoth', status: 'SURFACED', threat: 'Elevated' },
-  { codename: 'Nyxmora', archetype: 'Umbral Leviathan', status: 'SUBMERGED', threat: 'Stirring' },
+  {
+    codename: 'Gorathos', archetype: 'Abyssal Colossus', status: 'LANDFALL', threat: 'Cataclysm',
+    from: { lng: -122.648, lat: 37.798 }, to: { lng: -122.402, lat: 37.795 },
+    target: 'SAN FRANCISCO', startRange: 215,
+  },
+  {
+    codename: 'Vespyra', archetype: 'Tempest Wyrm', status: 'INBOUND', threat: 'Critical',
+    from: { lng: -122.628, lat: 37.692 }, to: { lng: -122.428, lat: 37.765 },
+    target: 'SAN FRANCISCO', startRange: 91,
+  },
+  {
+    codename: 'Terrakon', archetype: 'Tectonic Behemoth', status: 'SURFACED', threat: 'Elevated',
+    from: { lng: -122.285, lat: 37.615 }, to: { lng: -122.282, lat: 37.798 },
+    target: 'OAKLAND', startRange: 201,
+  },
+  {
+    codename: 'Nyxmora', archetype: 'Umbral Leviathan', status: 'SUBMERGED', threat: 'Stirring',
+    from: { lng: -122.225, lat: 37.578 }, to: { lng: -122.158, lat: 37.692 },
+    target: 'SAN LEANDRO', startRange: 342,
+  },
 ] as const
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V'] as const
@@ -72,9 +98,17 @@ export function createRoster(seed: string = ROSTER_SEED): Leviathan[] {
       hp,
       hpMax,
       status: spec.status,
-      lng: round(ANCHOR.lng + between(rng, -0.35, 0.35), 4),
-      lat: round(ANCHOR.lat + between(rng, -0.25, 0.25), 4),
+      // Spawn position; the live map position is derived from sim time along
+      // the from -> to track (see posFromFrac / fracAt below).
+      lng: spec.from.lng,
+      lat: spec.from.lat,
       threat: spec.threat,
+      heading: round(between(rng, 0, 360)),
+      from: spec.from,
+      to: spec.to,
+      target: spec.target,
+      startRange: spec.startRange,
+      repel: 0,
     }
   })
 }
@@ -84,10 +118,27 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
 }
 
+// --- Dispatch knockback (MOCKED) --------------------------------------------
+// Deploying a response asset against a leviathan shoves it back along its
+// inbound track. The shove is a fraction of the track subtracted from the
+// natural advance (applied in CommandMap), accumulating per dispatch up to a
+// cap and decaying a little each heartbeat tick until the leviathan resumes
+// closing. This is the seam where a real engagement model would plug in.
+
+/** Track fraction a single dispatch pushes the targeted leviathan back. */
+export const REPEL_KNOCKBACK_FRAC = 0.18
+
+/** Maximum accumulated knockback (fraction of track) from stacked dispatches. */
+export const REPEL_KNOCKBACK_MAX = 0.6
+
+/** Knockback (fraction) shed each 1s heartbeat tick as the leviathan recovers. */
+export const REPEL_DECAY_PER_TICK = 0.04
+
 /**
- * Advances the roster one tick: bounded random-walk drift on telemetry stats
- * and a steady HP countdown. The PRNG defaults to time-seeded so live ticks
- * feel organic; pass a seed for reproducible tick sequences (tests).
+ * Advances the roster one tick: bounded random-walk drift on speed and a
+ * steady HP countdown. Range and position are map-owned (track-derived) and
+ * left untouched here. The PRNG defaults to time-seeded so live ticks feel
+ * organic; pass a seed for reproducible tick sequences (tests).
  */
 export function tickLeviathans(
   leviathans: readonly Leviathan[],
@@ -99,12 +150,155 @@ export function tickLeviathans(
     const hp = clamp(lev.hp - round(between(rng, 1, 28)), 0, lev.hpMax)
     return {
       ...lev,
-      range: round(clamp(lev.range + between(rng, -1.5, 1.5), 4, 80), 1),
       speed: round(clamp(lev.speed + between(rng, -4, 4), 0, 120), 1),
       hp,
-      // Gentle positional drift keeps markers alive without teleporting.
-      lng: round(lev.lng + between(rng, -0.004, 0.004), 4),
-      lat: round(lev.lat + between(rng, -0.003, 0.003), 4),
+      // Dispatch knockback recovers a little each tick (0 = fully closing in).
+      repel: round(Math.max(0, lev.repel - REPEL_DECAY_PER_TICK), 2),
+      // Position and remaining range are derived from sim time along the
+      // from -> to track (posFromFrac / rangeFromFrac), so the stored lng/lat
+      // and range stay map-owned here (no random drift).
     }
   })
+}
+
+// --- Inbound-track motion model (MOCKED) ------------------------------------
+// Scripted inbound motion: a leviathan's remaining range falls linearly with
+// sim time at a rate proportional to its speed, then wraps so the demo loops
+// forever. Positions are a straight-line lerp from `from` (spawn) to `to`
+// (landfall). This is the seam where live HVE Core tracks would plug in.
+
+/** Fraction of a track's length covered per (km/h · sim-second). Not physics. */
+export const CLOSURE_RATE = 0.05
+
+/** Range thresholds (km) that separate the inbound status bands. */
+const LANDFALL_RANGE_KM = 25
+const SURFACED_RANGE_KM = 70
+
+/** Minimal pacing inputs shared by the inbound-motion interpolators. */
+export interface TrackPace {
+  /** Travel speed (km/h) driving closure rate. */
+  speed: number
+  /** Engagement range (km) at spawn; the track's full length. */
+  startRange: number
+}
+
+/** Normalized progress (0 = spawn, 1 = landfall) at a given sim time; wraps. */
+export function fracAt(track: TrackPace, simTime: number): number {
+  const shed = track.speed * CLOSURE_RATE * simTime
+  return (shed % track.startRange) / track.startRange
+}
+
+/** Whole-number landfall cycles completed by a given sim time. */
+export function cycleAt(track: TrackPace, simTime: number): number {
+  return Math.floor((track.speed * CLOSURE_RATE * simTime) / track.startRange)
+}
+
+/** Remaining range (km) for a given progress fraction. */
+export function rangeFromFrac(startRange: number, frac: number): number {
+  return startRange * (1 - frac)
+}
+
+/** Interpolated position for a given progress fraction. */
+export function posFromFrac(
+  from: { lng: number; lat: number },
+  to: { lng: number; lat: number },
+  frac: number,
+): { lng: number; lat: number } {
+  return {
+    lng: from.lng + (to.lng - from.lng) * frac,
+    lat: from.lat + (to.lat - from.lat) * frac,
+  }
+}
+
+/** Inbound status band derived from remaining range. */
+export function statusFromRange(rangeKm: number): LeviathanStatus {
+  if (rangeKm < LANDFALL_RANGE_KM) return 'LANDFALL'
+  if (rangeKm < SURFACED_RANGE_KM) return 'SURFACED'
+  return 'INBOUND'
+}
+
+/**
+ * Estimated sim-seconds until a leviathan reaches landfall (range 0) at its
+ * current closure rate. Range falls by `speed · CLOSURE_RATE` km per sim-second,
+ * so the time to close the remaining range is range / that rate. Returns
+ * `Infinity` when the leviathan is not closing (speed 0) — a held target.
+ */
+export function etaToLandfall(rangeKm: number, speed: number): number {
+  const closurePerSecond = speed * CLOSURE_RATE
+  if (closurePerSecond <= 0) return Infinity
+  return rangeKm / closurePerSecond
+}
+
+/**
+ * Formats an ETA (sim-seconds) for the roster readout: `HOLD` when the target
+ * is not closing, a bare `48s` under a minute, or `2m 17s` above it.
+ */
+export function formatEta(seconds: number): string {
+  if (!Number.isFinite(seconds)) return 'HOLD'
+  const whole = Math.max(0, Math.round(seconds))
+  if (whole < 60) return `${whole}s`
+  const minutes = Math.floor(whole / 60)
+  const remainder = whole % 60
+  return `${minutes}m ${remainder.toString().padStart(2, '0')}s`
+}
+
+/**
+ * Static progress fraction used when the user prefers reduced motion: higher
+ * threat sits closer to landfall so the map reads as a meaningful snapshot
+ * without any travel animation.
+ */
+export function staticFracFor(threat: ThreatLevel): number {
+  const byRank = [0.12, 0.3, 0.5, 0.7, 0.92] as const
+  return byRank[THREAT_LEVELS.indexOf(threat)] ?? 0.4
+}
+
+/** Track geometry + pace for the live advance: spawn/landfall endpoints plus
+    the pacing inputs (a superset of {@link TrackPace}). */
+export interface AdvanceTrack extends TrackPace {
+  /** Open-water spawn point. */
+  from: { lng: number; lat: number }
+  /** Landfall target point. */
+  to: { lng: number; lat: number }
+}
+
+/** Resolved live render state for a single leviathan at a moment in sim time. */
+export interface LeviathanAdvance {
+  /** Live progress fraction (0 = spawn ... 1 = landfall). */
+  frac: number
+  /** Interpolated map position at that fraction. */
+  pos: { lng: number; lat: number }
+  /** Remaining range to landfall (km). */
+  rangeKm: number
+  /** Inbound status band derived from the remaining range. */
+  status: LeviathanStatus
+  /** Formatted ETA to landfall (or `HOLD`). */
+  eta: string
+}
+
+/**
+ * Resolves a leviathan's live render state from the scripted track and the sim
+ * clock: the natural closure fraction less any dispatch knockback (clamped at
+ * spawn), or a static threat-based snapshot under reduced motion, expanded to
+ * position, remaining range, status band, and ETA. Pure — drives both the map
+ * markers and the side-panel readouts, so locking it down here guards both.
+ *
+ * `speed` is the leviathan's live speed (for the ETA readout), which can drift
+ * apart from the frozen `track.speed` that paces the scripted advance.
+ */
+export function deriveAdvance(
+  track: AdvanceTrack,
+  threat: ThreatLevel,
+  repel: number,
+  speed: number,
+  simTime: number,
+  reducedMotion: boolean,
+): LeviathanAdvance {
+  const frac = reducedMotion
+    ? staticFracFor(threat)
+    : Math.max(0, fracAt(track, simTime) - repel)
+  const pos = posFromFrac(track.from, track.to, frac)
+  const rangeKm = rangeFromFrac(track.startRange, frac)
+  const status = statusFromRange(rangeKm)
+  const eta = formatEta(etaToLandfall(rangeKm, speed))
+  return { frac, pos, rangeKm, status, eta }
 }

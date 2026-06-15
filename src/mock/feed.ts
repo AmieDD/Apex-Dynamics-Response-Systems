@@ -1,9 +1,12 @@
 // Mocked Signal Feed generator for the Kaiju Defense Network.
 //
-// Events are produced with faker text on Poisson-like arrival intervals so the
-// feed reads as an organic live stream rather than a fixed-rate ticker.
+// Events are produced from canned phrase pools on Poisson-like arrival
+// intervals so the feed reads as an organic live stream rather than a
+// fixed-rate ticker. Randomness comes from a small seedable PRNG (seedrandom,
+// already used by the roster) so the heavy @faker-js/faker dependency stays out
+// of the bundle.
 
-import { faker } from '@faker-js/faker'
+import seedrandom from 'seedrandom'
 
 import type { Leviathan, SignalEvent, SignalSeverity } from './types'
 
@@ -21,13 +24,51 @@ const SENSORS = [
 
 const SECTORS = ['ALPHA', 'BRAVO', 'CHARLIE', 'DELTA', 'ECHO', 'FOXTROT'] as const
 
-/** Optionally seed the underlying faker PRNG for reproducible feeds (tests). */
+/** WARN-flavored anomaly clauses (replaces faker.hacker.phrase()). */
+const WARN_CLAUSES = [
+  'energy signature spiking past safe thresholds',
+  'hull-displacement wake widening fast',
+  'bioelectric surge scrambling nearby sensors',
+  'dive profile flattening toward an attack run',
+  'thermal bloom consistent with an imminent surface',
+  'harmonic roar registering across the seismic grid',
+] as const
+
+/** OPS clauses for a leviathan-linked dispatch update (replaces catchPhrase). */
+const LINKED_OPS_CLAUSES = [
+  'interception lattice realigning to its heading',
+  'shore batteries walking fire onto its track',
+  'mech wing vectoring for a flanking push',
+  'barrier grid charging along the projected path',
+] as const
+
+/** OPS clauses for an untargeted sector action (replaces buzzPhrase). */
+const SECTOR_OPS_CLAUSES = [
+  'Mobilizing the rapid-response wing',
+  'Hardening the seawall cordon',
+  'Staging evacuation corridors',
+  'Routing reserve power to the barrier grid',
+] as const
+
+// Module-level PRNG. Defaults to a time-based seed for organic variety across
+// loads; tests call seedFeed() to pin it for reproducible assertions.
+let rng = seedrandom(String(Date.now()))
+let idCounter = 0
+
+/** Seeds the feed PRNG for reproducible streams (tests). */
 export function seedFeed(seed: number): void {
-  faker.seed(seed)
+  rng = seedrandom(String(seed))
+  idCounter = 0
 }
 
 function pick<T>(items: readonly T[]): T {
-  return items[Math.floor(faker.number.float({ min: 0, max: 1 }) * items.length) % items.length]
+  return items[Math.floor(rng() * items.length) % items.length]
+}
+
+/** Monotonic, collision-free event id (replaces faker.string.uuid()). */
+function nextId(): string {
+  idCounter += 1
+  return `sig-${idCounter.toString(36)}-${Math.floor(rng() * 0xfffff).toString(36)}`
 }
 
 function messageFor(severity: SignalSeverity, leviathan?: Leviathan): string {
@@ -37,9 +78,9 @@ function messageFor(severity: SignalSeverity, leviathan?: Leviathan): string {
   if (leviathan) {
     switch (severity) {
       case 'WARN':
-        return `${sensor}: ${leviathan.codename} tracking toward Sector ${sector} — ${faker.hacker.phrase()}`
+        return `${sensor}: ${leviathan.codename} tracking toward Sector ${sector} — ${pick(WARN_CLAUSES)}`
       case 'OPS':
-        return `Dispatch update on ${leviathan.codename}: ${faker.company.catchPhrase()}`
+        return `Dispatch update on ${leviathan.codename}: ${pick(LINKED_OPS_CLAUSES)}`
       default:
         return `${sensor} contact: ${leviathan.codename} signature stable in Sector ${sector}.`
     }
@@ -47,9 +88,9 @@ function messageFor(severity: SignalSeverity, leviathan?: Leviathan): string {
 
   switch (severity) {
     case 'WARN':
-      return `${sensor}: anomalous reading in Sector ${sector} — ${faker.hacker.phrase()}`
+      return `${sensor}: anomalous reading in Sector ${sector} — ${pick(WARN_CLAUSES)}`
     case 'OPS':
-      return `Operations: ${faker.company.buzzPhrase()} for Sector ${sector}.`
+      return `Operations: ${pick(SECTOR_OPS_CLAUSES)} for Sector ${sector}.`
     default:
       return `${sensor} nominal across Sector ${sector}.`
   }
@@ -64,17 +105,17 @@ export function makeSignalEvent(
   now: number = Date.now(),
 ): SignalEvent {
   // Weight toward INFO, with occasional WARN/OPS for texture.
-  const roll = faker.number.float({ min: 0, max: 1 })
+  const roll = rng()
   const severity: SignalSeverity = roll < 0.6 ? 'INFO' : roll < 0.82 ? 'WARN' : 'OPS'
 
   const linkChance = severity === 'WARN' ? 0.7 : 0.35
   const leviathan =
-    leviathans.length > 0 && faker.number.float({ min: 0, max: 1 }) < linkChance
+    leviathans.length > 0 && rng() < linkChance
       ? pick(leviathans)
       : undefined
 
   return {
-    id: faker.string.uuid(),
+    id: nextId(),
     severity,
     message: messageFor(severity, leviathan),
     timestamp: now,
