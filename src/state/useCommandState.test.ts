@@ -11,7 +11,7 @@
 import { act, cleanup, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { seedFeed } from '../mock/feed'
+import * as feed from '../mock/feed'
 import { REPEL_KNOCKBACK_FRAC, REPEL_KNOCKBACK_MAX } from '../mock/leviathans'
 import { useCommandState } from './useCommandState'
 
@@ -37,7 +37,7 @@ function repelOf(
 
 beforeEach(() => {
   vi.useFakeTimers()
-  seedFeed(1)
+  feed.seedFeed(1)
 })
 
 afterEach(() => {
@@ -236,5 +236,40 @@ describe('triggerAlert', () => {
     expect(event.message).toBe(
       'Citywide alert stood down — sectors returning to nominal.',
     )
+  })
+})
+
+describe('reduced-motion feed rate', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  it('feeds at the full rate when matchMedia is unavailable', () => {
+    // jsdom omits matchMedia by default, so prefersReducedMotion() is false.
+    const schedule = vi.spyOn(feed, 'scheduleNext').mockReturnValue(() => {})
+
+    renderHook(() => useCommandState())
+
+    expect(schedule).toHaveBeenCalledTimes(1)
+    expect(schedule.mock.calls[0]?.[1]).toBe(24)
+  })
+
+  it('throttles the feed when the user prefers reduced motion', () => {
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: true }))
+    const schedule = vi.spyOn(feed, 'scheduleNext').mockReturnValue(() => {})
+
+    renderHook(() => useCommandState())
+
+    expect(schedule.mock.calls[0]?.[1]).toBe(6)
+  })
+
+  it('keeps the full rate when reduced motion is not requested', () => {
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({ matches: false }))
+    const schedule = vi.spyOn(feed, 'scheduleNext').mockReturnValue(() => {})
+
+    renderHook(() => useCommandState())
+
+    expect(schedule.mock.calls[0]?.[1]).toBe(24)
   })
 })
