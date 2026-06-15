@@ -19,6 +19,8 @@ import type { Feature, FeatureCollection, LineString, Point } from 'geojson'
 
 import {
   cycleAt,
+  etaToLandfall,
+  formatEta,
   fracAt,
   posFromFrac,
   rangeFromFrac,
@@ -164,8 +166,10 @@ export default function CommandMap({
       ? staticFracFor(lev.threat)
       : Math.max(0, fracAt(track, simTime) - lev.repel)
     const pos = posFromFrac(track.from, track.to, frac)
-    const status = statusFromRange(rangeFromFrac(track.startRange, frac))
-    return { lev, track, pos, status, color: threatColor(lev.threat) }
+    const rangeKm = rangeFromFrac(track.startRange, frac)
+    const status = statusFromRange(rangeKm)
+    const eta = formatEta(etaToLandfall(rangeKm, lev.speed))
+    return { lev, track, pos, status, eta, color: threatColor(lev.threat) }
   })
 
   // Ease the camera to the selected leviathan's current position on selection.
@@ -343,13 +347,14 @@ export default function CommandMap({
           />
         </Source>
 
-        {derived.map(({ lev, pos, status, color }) => (
+        {derived.map(({ lev, pos, status, eta, color }) => (
           <LeviathanMarker
             key={lev.id}
             leviathan={lev}
             lng={pos.lng}
             lat={pos.lat}
             status={status}
+            eta={eta}
             color={color}
             selected={lev.id === selectedId}
             onSelect={select}
@@ -364,6 +369,22 @@ export default function CommandMap({
           aria-hidden="true"
         />
       )}
+
+      {/* Self-documenting key for the coded flags flown on the markers. */}
+      <div className="kdn-map-legend" aria-label="Marker flag legend">
+        <span className="kdn-legend-row">
+          <span className="kdn-legend-key kdn-legend-key--target">▸ TARGET</span>
+          <span className="kdn-legend-text">dispatch focus</span>
+        </span>
+        <span className="kdn-legend-row">
+          <span className="kdn-legend-key kdn-legend-key--repelled">REPELLED</span>
+          <span className="kdn-legend-text">shoved back</span>
+        </span>
+        <span className="kdn-legend-row">
+          <span className="kdn-legend-key kdn-legend-key--landfall">LANDFALL</span>
+          <span className="kdn-legend-text">reached target</span>
+        </span>
+      </div>
     </div>
   )
 }
@@ -376,6 +397,8 @@ interface LeviathanMarkerProps {
   lat: number
   /** Current inbound status band (drives the LANDFALL flash). */
   status: LeviathanStatus
+  /** Formatted landfall ETA (e.g. "1m 23s" / "HOLD"). */
+  eta: string
   /** Severity hex color. */
   color: string
   selected: boolean
@@ -388,6 +411,7 @@ function LeviathanMarker({
   lng,
   lat,
   status,
+  eta,
   color,
   selected,
   onSelect,
@@ -399,7 +423,7 @@ function LeviathanMarker({
   const repelled = leviathan.repel > 0.001
   const label = `${leviathan.codename} — Class ${leviathan.classNumeral}, ${threatLabel(
     leviathan.threat,
-  )}, ${repelled ? 'REPELLED' : status}${selected ? ' · dispatch target' : ''}`
+  )}, ${repelled ? 'REPELLED' : status}${selected ? ` · dispatch target · ETA ${eta}` : ''}`
 
   return (
     <Marker
@@ -436,7 +460,7 @@ function LeviathanMarker({
         >
           {initial}
         </span>
-        {selected && <span className="kdn-marker-target">▸ TARGET</span>}
+        {selected && <span className="kdn-marker-target">▸ TARGET · {eta}</span>}
       </button>
     </Marker>
   )

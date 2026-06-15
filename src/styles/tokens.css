@@ -567,6 +567,57 @@
   }
 }
 
+/* Marker flag legend (CommandMap.tsx): a compact key for the coded flags flown
+   on the map markers, pinned to the map's bottom-right corner so the flag
+   vocabulary is self-documenting. Non-interactive so it never blocks panning. */
+.kdn-map-legend {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid rgb(var(--border));
+  border-radius: 4px;
+  background: rgb(var(--surface) / 0.82);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+
+.kdn-legend-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.kdn-legend-key {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+}
+
+.kdn-legend-key--target,
+.kdn-legend-key--repelled {
+  color: rgb(var(--accent));
+}
+
+.kdn-legend-key--landfall {
+  color: var(--threat-critical);
+}
+
+.kdn-legend-text {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: rgb(var(--text-muted));
+}
+
 /* Roster card whose leviathan is actively repelled by a dispatch
    (LeviathanRoster.tsx). A brief accent-violet background wash echoes the map's
    REPELLED flag so the rail reflects the same dispatch action, then clears
