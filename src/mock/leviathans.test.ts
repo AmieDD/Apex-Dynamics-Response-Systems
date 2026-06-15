@@ -15,6 +15,7 @@ import {
   REPEL_KNOCKBACK_MAX,
   createRoster,
   cycleAt,
+  deriveAdvance,
   etaToLandfall,
   formatEta,
   fracAt,
@@ -23,6 +24,7 @@ import {
   staticFracFor,
   statusFromRange,
   tickLeviathans,
+  type AdvanceTrack,
 } from './leviathans'
 
 // A 200 km track shedding 5 km/s (speed 100 · CLOSURE_RATE 0.05) completes one
@@ -297,5 +299,68 @@ describe('formatEta', () => {
 
   it('never emits a negative readout', () => {
     expect(formatEta(-5)).toBe('0s')
+  })
+})
+
+describe('deriveAdvance', () => {
+  // A 200 km track running due east, shedding 5 km/s (speed 100 · 0.05): one
+  // landfall cycle every 40 sim-seconds, midpoint at 20.
+  const TRACK: AdvanceTrack = {
+    from: { lng: 0, lat: 0 },
+    to: { lng: 10, lat: 0 },
+    startRange: 200,
+    speed: 100,
+  }
+
+  it('resolves position, range, status, and ETA from the live advance', () => {
+    const a = deriveAdvance(TRACK, 'Critical', 0, 100, 20, false)
+
+    expect(a.frac).toBeCloseTo(0.5, 10)
+    expect(a.pos.lng).toBeCloseTo(5, 10)
+    expect(a.pos.lat).toBeCloseTo(0, 10)
+    expect(a.rangeKm).toBeCloseTo(100, 10)
+    expect(a.status).toBe('INBOUND')
+    expect(a.eta).toBe('20s')
+  })
+
+  it('subtracts dispatch knockback from the natural advance', () => {
+    const base = deriveAdvance(TRACK, 'Critical', 0, 100, 20, false)
+    const repelled = deriveAdvance(TRACK, 'Critical', 0.2, 100, 20, false)
+
+    expect(repelled.frac).toBeCloseTo(base.frac - 0.2, 10)
+    expect(repelled.rangeKm).toBeGreaterThan(base.rangeKm)
+  })
+
+  it('clamps the advance at spawn when knockback exceeds progress', () => {
+    const a = deriveAdvance(TRACK, 'Critical', 5, 100, 20, false)
+
+    expect(a.frac).toBe(0)
+    expect(a.pos).toEqual(TRACK.from)
+    expect(a.rangeKm).toBe(TRACK.startRange)
+  })
+
+  it('holds a static threat snapshot under reduced motion', () => {
+    // Reduced motion ignores both sim time and knockback.
+    const a = deriveAdvance(TRACK, 'Critical', 0.9, 100, 999, true)
+
+    expect(a.frac).toBe(staticFracFor('Critical'))
+    expect(a.rangeKm).toBeCloseTo(rangeFromFrac(200, staticFracFor('Critical')), 10)
+  })
+
+  it('uses the live speed for the ETA, not the frozen track pace', () => {
+    // Half the live speed → twice the ETA, even though the track paces at 100.
+    const fast = deriveAdvance(TRACK, 'Critical', 0, 100, 20, false)
+    const slow = deriveAdvance(TRACK, 'Critical', 0, 50, 20, false)
+
+    expect(fast.eta).toBe('20s')
+    expect(slow.eta).toBe('40s')
+  })
+
+  it('crosses into the landfall band as the advance closes', () => {
+    const early = deriveAdvance(TRACK, 'Critical', 0, 100, 1, false)
+    const late = deriveAdvance(TRACK, 'Critical', 0, 100, 39, false)
+
+    expect(early.status).toBe('INBOUND')
+    expect(late.status).toBe('LANDFALL')
   })
 })

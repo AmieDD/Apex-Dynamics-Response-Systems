@@ -19,13 +19,7 @@ import type { Feature, FeatureCollection, LineString, Point } from 'geojson'
 
 import {
   cycleAt,
-  etaToLandfall,
-  formatEta,
-  fracAt,
-  posFromFrac,
-  rangeFromFrac,
-  staticFracFor,
-  statusFromRange,
+  deriveAdvance,
 } from '../mock/leviathans'
 import { threatColor, threatLabel } from '../mock/severity'
 import type { Leviathan, LeviathanStatus } from '../mock/types'
@@ -159,16 +153,17 @@ export default function CommandMap({
       frozen[lev.id] ??
       { from: lev.from, to: lev.to, startRange: lev.startRange, speed: lev.speed }
     // Dispatching a response asset shoves the targeted leviathan back toward
-    // open water: subtract its current knockback (a track fraction that decays
-    // each heartbeat) from the natural advance, clamped at spawn. Reduced
-    // motion ignores the shove and holds the static snapshot.
-    const frac = reducedMotion
-      ? staticFracFor(lev.threat)
-      : Math.max(0, fracAt(track, simTime) - lev.repel)
-    const pos = posFromFrac(track.from, track.to, frac)
-    const rangeKm = rangeFromFrac(track.startRange, frac)
-    const status = statusFromRange(rangeKm)
-    const eta = formatEta(etaToLandfall(rangeKm, lev.speed))
+    // open water: deriveAdvance subtracts its current knockback (a track
+    // fraction that decays each heartbeat) from the natural advance, clamped at
+    // spawn. Reduced motion ignores the shove and holds the static snapshot.
+    const { pos, status, eta } = deriveAdvance(
+      track,
+      lev.threat,
+      lev.repel,
+      lev.speed,
+      simTime,
+      reducedMotion,
+    )
     return { lev, track, pos, status, eta, color: threatColor(lev.threat) }
   })
 
@@ -187,10 +182,14 @@ export default function CommandMap({
       startRange: target.startRange,
       speed: target.speed,
     }
-    const frac = reducedMotion
-      ? staticFracFor(target.threat)
-      : Math.max(0, fracAt(track, simTimeRef.current) - target.repel)
-    const pos = posFromFrac(track.from, track.to, frac)
+    const { pos } = deriveAdvance(
+      track,
+      target.threat,
+      target.repel,
+      target.speed,
+      simTimeRef.current,
+      reducedMotion,
+    )
     mapRef.current?.easeTo({
       center: [pos.lng, pos.lat],
       zoom: FOCUS_ZOOM,
@@ -242,11 +241,14 @@ export default function CommandMap({
         startRange: lev.startRange,
         speed: lev.speed,
       }
-      const frac = reducedMotion
-        ? staticFracFor(lev.threat)
-        : Math.max(0, fracAt(track, simTime) - lev.repel)
-      const rangeKm = rangeFromFrac(track.startRange, frac)
-      const status = statusFromRange(rangeKm)
+      const { rangeKm, status } = deriveAdvance(
+        track,
+        lev.threat,
+        lev.repel,
+        lev.speed,
+        simTime,
+        reducedMotion,
+      )
       if (lastStatusRef.current[lev.id] !== status) {
         lastStatusRef.current[lev.id] = status
         reportStatus(lev.id, status)

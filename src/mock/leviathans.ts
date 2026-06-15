@@ -251,3 +251,54 @@ export function staticFracFor(threat: ThreatLevel): number {
   const byRank = [0.12, 0.3, 0.5, 0.7, 0.92] as const
   return byRank[THREAT_LEVELS.indexOf(threat)] ?? 0.4
 }
+
+/** Track geometry + pace for the live advance: spawn/landfall endpoints plus
+    the pacing inputs (a superset of {@link TrackPace}). */
+export interface AdvanceTrack extends TrackPace {
+  /** Open-water spawn point. */
+  from: { lng: number; lat: number }
+  /** Landfall target point. */
+  to: { lng: number; lat: number }
+}
+
+/** Resolved live render state for a single leviathan at a moment in sim time. */
+export interface LeviathanAdvance {
+  /** Live progress fraction (0 = spawn ... 1 = landfall). */
+  frac: number
+  /** Interpolated map position at that fraction. */
+  pos: { lng: number; lat: number }
+  /** Remaining range to landfall (km). */
+  rangeKm: number
+  /** Inbound status band derived from the remaining range. */
+  status: LeviathanStatus
+  /** Formatted ETA to landfall (or `HOLD`). */
+  eta: string
+}
+
+/**
+ * Resolves a leviathan's live render state from the scripted track and the sim
+ * clock: the natural closure fraction less any dispatch knockback (clamped at
+ * spawn), or a static threat-based snapshot under reduced motion, expanded to
+ * position, remaining range, status band, and ETA. Pure — drives both the map
+ * markers and the side-panel readouts, so locking it down here guards both.
+ *
+ * `speed` is the leviathan's live speed (for the ETA readout), which can drift
+ * apart from the frozen `track.speed` that paces the scripted advance.
+ */
+export function deriveAdvance(
+  track: AdvanceTrack,
+  threat: ThreatLevel,
+  repel: number,
+  speed: number,
+  simTime: number,
+  reducedMotion: boolean,
+): LeviathanAdvance {
+  const frac = reducedMotion
+    ? staticFracFor(threat)
+    : Math.max(0, fracAt(track, simTime) - repel)
+  const pos = posFromFrac(track.from, track.to, frac)
+  const rangeKm = rangeFromFrac(track.startRange, frac)
+  const status = statusFromRange(rangeKm)
+  const eta = formatEta(etaToLandfall(rangeKm, speed))
+  return { frac, pos, rangeKm, status, eta }
+}
