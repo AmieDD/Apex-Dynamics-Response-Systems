@@ -1,10 +1,11 @@
 name: Deploy to GitHub Pages
 
 # Build the Vite app and publish dist/ to GitHub Pages on every push to the
-# default branch. Manual runs are also supported via the Actions tab.
+# default branch or the active feature branch, so the deploy can be exercised
+# before merge. Manual runs are also supported via the Actions tab.
 on:
   push:
-    branches: [main]
+    branches: [main, amiedansby/RAI]
   workflow_dispatch:
 
 # Allow the GITHUB_TOKEN to publish to Pages and verify the deployment.
