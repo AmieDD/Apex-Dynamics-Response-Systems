@@ -26,16 +26,18 @@ function formatClock(epochMs: number): string {
 /** Picks the Clipzilla pose from command-center state. An active citywide alert
  *  takes precedence over threat level, so the beacon always shows during an
  *  alert; otherwise Critical/Cataclysm shows the charging pose and calmer
- *  levels show the default happy mascot. */
+ *  levels show the default happy mascot. `ringColor` is the threat hue to frame
+ *  the mascot with during high-threat/alert states (null = calm, neutral). */
 function mascotPose(
   threatLevel: ThreatLevel,
   alertActive: boolean,
-): { src: string; alt: string; alarm: boolean } {
+): { src: string; alt: string; alarm: boolean; ringColor: string | null } {
   if (alertActive) {
     return {
       src: '/ClipzillaAlarm.png',
       alt: 'Clipzilla raising an alert beacon — citywide alert active',
       alarm: true,
+      ringColor: threatColor('Critical'),
     }
   }
   if (threatRank(threatLevel) >= threatRank('Critical')) {
@@ -43,12 +45,14 @@ function mascotPose(
       src: '/ClipzillaAngry.png',
       alt: `Clipzilla on the offensive — ${threatLabel(threatLevel)} threat`,
       alarm: false,
+      ringColor: threatColor(threatLevel),
     }
   }
   return {
     src: '/Clipzilla.png',
     alt: 'Clipzilla — Apex Dynamics mascot',
     alarm: false,
+    ringColor: null,
   }
 }
 
@@ -71,9 +75,17 @@ export function TopBar({
           title="Clipzilla"
           width={40}
           height={40}
-          className={`kdn-mascot h-10 w-10 shrink-0 rounded-md border border-border bg-surface object-contain${
-            mascot.alarm ? ' kdn-mascot--alarm' : ''
-          }`}
+          className={`kdn-mascot h-10 w-10 shrink-0 rounded-md border bg-surface object-contain${
+            mascot.ringColor ? '' : ' border-border'
+          }${mascot.alarm ? ' kdn-mascot--alarm' : ''}`}
+          style={
+            mascot.ringColor
+              ? {
+                  borderColor: mascot.ringColor,
+                  boxShadow: `0 0 0 2px ${mascot.ringColor}, 0 0 10px ${mascot.ringColor}80`,
+                }
+              : undefined
+          }
         />
         <div className="flex items-baseline gap-3">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-text-muted">

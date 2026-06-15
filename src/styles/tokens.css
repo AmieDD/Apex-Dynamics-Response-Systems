@@ -13,13 +13,13 @@
   --border: 48 54 61; /* #30363D hairline borders */
   --text: 230 237 243; /* #E6EDF3 primary text */
   --text-muted: 139 148 158; /* #8B949E secondary/telemetry text */
-  --accent: 88 166 255; /* #58A6FF interactive accent */
+  --accent: 167 139 250; /* #A78BFA brand-violet interactive accent */
 
   /* Command-center top bar: a brand-purple band, lighter than the near-black
      body so the header reads clearly. Triplet form feeds rgb()/<alpha>. */
-  --topbar-from: 45 32 74; /* #2D204A deep brand purple */
-  --topbar-to: 32 24 56; /* #201838 darker purple, gradient tail */
-  --topbar-border: 124 92 200; /* #7C5CC8 purple hairline */
+  --topbar-from: 74 45 130; /* #4A2D82 vivid brand purple, toward #863bff */
+  --topbar-to: 54 33 94; /* #36215E darker purple, gradient tail */
+  --topbar-border: 134 59 255; /* #863BFF brand-purple hairline */
 
   /* Threat scale: Dormant -> Stirring -> Elevated -> Critical -> Cataclysm. */
   --threat-dormant: #10b981;
@@ -480,7 +480,7 @@
 }
 
 /* REPELLED flag flown above a leviathan marker actively shoved back toward open
-   water by a dispatch (CommandMap.tsx). Rendered in accent blue — our defensive
+   water by a dispatch (CommandMap.tsx). Rendered in accent violet — our defensive
    action — so it reads distinctly from the threat-colored LANDFALL flag, and
    takes its place while the knockback decays. */
 .kdn-marker-repelled {
@@ -534,7 +534,7 @@
 /* Dispatch-target hint flown below the selected leviathan marker
    (CommandMap.tsx). The selected leviathan is what a dispatch will repel, so
    this mirrors the Dispatch panel's "Target ▸ {codename}" header back onto the
-   map, making the target discoverable without reading the rail. Accent blue —
+   map, making the target discoverable without reading the rail. Accent violet —
    our defensive-action color — matching the REPELLED flag it often precedes.
    Sits below the dot so it never collides with the LANDFALL or REPELLED flags
    flown above. */
@@ -568,7 +568,7 @@
 }
 
 /* Roster card whose leviathan is actively repelled by a dispatch
-   (LeviathanRoster.tsx). A brief accent-blue background wash echoes the map's
+   (LeviathanRoster.tsx). A brief accent-violet background wash echoes the map's
    REPELLED flag so the rail reflects the same dispatch action, then clears
    itself as the knockback decays. The wash sits behind the card content and
    leaves the threat-colored selection border untouched. */
