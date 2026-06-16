@@ -654,6 +654,27 @@
   }
 }
 
+/* Landfall target city label (CommandMap.tsx): a compact mono tag flown above
+   each track's destination tick, naming the objective the leviathan is closing
+   on (Seattle/Bellevue/Mercer Island/Kirkland). Tinted with the leviathan's
+   threat color so the label ties back to its track, with a dark surface halo
+   for legibility over the basemap's own city labels. Non-interactive. */
+.kdn-target-label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  white-space: nowrap;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 4px rgb(var(--surface)),
+    0 0 8px rgb(var(--surface)),
+    0 0 5px currentColor;
+  opacity: 0.92;
+  pointer-events: none;
+}
+
 /* THREATCON readout (TopBar): a brief scale-and-glow bump that replays whenever
    the number's keyed span remounts on a threat-condition change, echoing the
    left-rail ladder's escalation without any component state. */

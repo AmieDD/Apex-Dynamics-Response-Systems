@@ -351,6 +351,25 @@ export default function CommandMap({
           />
         </Source>
 
+        {/* Landfall target city labels, pinned at each track's destination so
+            the tactical objective reads on the map (Seattle/Bellevue/Mercer
+            Island/Kirkland). Non-interactive and decorative — the roster rail
+            carries the same target for assistive tech. */}
+        {derived.map(({ lev, track, color }) => (
+          <Marker
+            key={`target-label-${lev.id}`}
+            longitude={track.to.lng}
+            latitude={track.to.lat}
+            anchor="bottom"
+            offset={[0, -7]}
+            style={{ pointerEvents: 'none' }}
+          >
+            <span className="kdn-target-label" style={{ color }} aria-hidden="true">
+              {lev.target}
+            </span>
+          </Marker>
+        ))}
+
         {derived.map(({ lev, pos, status, eta, color }) => (
           <LeviathanMarker
             key={lev.id}
