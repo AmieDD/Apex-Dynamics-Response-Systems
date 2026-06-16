@@ -85,7 +85,7 @@ export function LastStandScene(): React.JSX.Element {
     >
       <div className="ls-head">
         <div className="ls-head-text">
-          <span className="ls-title">PROJECT GUARDIAN · SINGLE-SAVE DECISION</span>
+          <span className="ls-title">AI AGENT · SINGLE-SAVE DECISION</span>
           <span className="ls-sub">2 KAIJU · 2 CITIES · SAVE ONLY 1</span>
         </div>
       </div>
