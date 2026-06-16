@@ -354,8 +354,10 @@ export default function CommandMap({
         {/* Landfall target city labels, pinned at each track's destination so
             the tactical objective reads on the map (Seattle/Bellevue/Mercer
             Island/Kirkland). Non-interactive and decorative — the roster rail
-            carries the same target for assistive tech. */}
-        {derived.map(({ lev, track, color }) => (
+            carries the same target for assistive tech. At LANDFALL the
+            leviathan's dot reaches this exact point, so the label fades back to
+            yield to the flashing LANDFALL flag flown above the dot. */}
+        {derived.map(({ lev, track, status, color }) => (
           <Marker
             key={`target-label-${lev.id}`}
             longitude={track.to.lng}
@@ -364,7 +366,11 @@ export default function CommandMap({
             offset={[0, -9]}
             style={{ pointerEvents: 'none' }}
           >
-            <span className="kdn-target-label" style={{ color }} aria-hidden="true">
+            <span
+              className={`kdn-target-label${status === 'LANDFALL' ? ' kdn-target-label--yield' : ''}`}
+              style={{ color }}
+              aria-hidden="true"
+            >
               {lev.target}
             </span>
           </Marker>

@@ -675,6 +675,21 @@
   text-transform: uppercase;
   text-shadow: 0 0 5px currentColor;
   pointer-events: none;
+  transition: opacity 300ms ease-out;
+}
+
+/* At LANDFALL the leviathan dot reaches the target point and flies its own
+   flashing LANDFALL flag directly above. The city label has already named the
+   objective, so it recedes to a faint chip rather than stacking with the flag —
+   keeping geography context without competing for the same spot. */
+.kdn-target-label--yield {
+  opacity: 0.28;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kdn-target-label {
+    transition: none;
+  }
 }
 
 /* THREATCON readout (TopBar): a brief scale-and-glow bump that replays whenever
