@@ -44,6 +44,16 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Verify workshop is not published
+        # The workshop/ zine is private to the repo and must never ship to
+        # GitHub Pages. Fail the deploy if it ever leaks into the dist/ output.
+        run: |
+          if [ -e dist/workshop ]; then
+            echo "::error::workshop/ leaked into dist/ — it must never be published."
+            exit 1
+          fi
+          echo "OK: workshop/ is not in the published output."
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 

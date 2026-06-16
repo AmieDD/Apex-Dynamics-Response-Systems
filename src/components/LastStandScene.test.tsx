@@ -44,7 +44,9 @@ describe('LastStandScene', () => {
         'Last-stand scenario: mocked AI agent chooses one of two cities to save',
       ),
     ).toBeTruthy()
-    expect(screen.getByText('AI AGENT · SINGLE-SAVE DECISION')).toBeTruthy()
+    expect(
+      screen.getByText('PROJECT GUARDIAN · SINGLE-SAVE DECISION'),
+    ).toBeTruthy()
     expect(screen.getByText('2 KAIJU · 2 CITIES · SAVE ONLY 1')).toBeTruthy()
   })
 
