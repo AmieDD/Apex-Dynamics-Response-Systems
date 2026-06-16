@@ -17,6 +17,6 @@ export interface LastStandCity {
 
 /** The two cities in the scenario, by field side. Populations are mocked. */
 export const LAST_STAND_CITIES: readonly LastStandCity[] = [
-  { name: 'BREMERTON', side: 'left', population: 44000 },
-  { name: 'OLYMPIA', side: 'right', population: 55000 },
+  { name: 'BREMERTON', side: 'left', population: 412000 },
+  { name: 'OLYMPIA', side: 'right', population: 318000 },
 ] as const

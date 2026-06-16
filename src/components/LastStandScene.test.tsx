@@ -86,8 +86,8 @@ describe('LastStandScene', () => {
     render(<LastStandScene />)
 
     // Populations are visible before the agent resolves.
-    expect(screen.getByText('POP 44,000')).toBeTruthy()
-    expect(screen.getByText('POP 55,000')).toBeTruthy()
+    expect(screen.getByText('POP 412,000')).toBeTruthy()
+    expect(screen.getByText('POP 318,000')).toBeTruthy()
   })
 
   it('reports the human and kaiju cost only once resolved', () => {
@@ -95,13 +95,13 @@ describe('LastStandScene', () => {
     render(<LastStandScene />)
 
     expect(
-      screen.queryByText('55,000 LOST · 1 KAIJU LANDED · 1 REPELLED'),
+      screen.queryByText('318,000 LOST · 1 KAIJU LANDED · 1 REPELLED'),
     ).toBeNull()
 
     resolveRun()
 
     expect(
-      screen.getByText('55,000 LOST · 1 KAIJU LANDED · 1 REPELLED'),
+      screen.getByText('318,000 LOST · 1 KAIJU LANDED · 1 REPELLED'),
     ).toBeTruthy()
   })
 
