@@ -361,7 +361,7 @@ export default function CommandMap({
             longitude={track.to.lng}
             latitude={track.to.lat}
             anchor="bottom"
-            offset={[0, -7]}
+            offset={[0, -9]}
             style={{ pointerEvents: 'none' }}
           >
             <span className="kdn-target-label" style={{ color }} aria-hidden="true">
