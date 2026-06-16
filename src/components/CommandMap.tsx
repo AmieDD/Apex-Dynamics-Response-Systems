@@ -28,12 +28,13 @@ import type { Leviathan, LeviathanStatus } from '../mock/types'
 const MAP_STYLE_URL =
   'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
 
-/** Opening camera framing the Puget Sound tracks (spawns out in the Sound,
-    targets the shoreline cities). */
+/** Opening camera framing the central Seattle/Bellevue tracks (spawns out in
+    the Sound, targets the close-in shoreline cities). Kept zoomed in by holding
+    every leviathan inside the Seattle–Mercer Island–Bellevue–Kirkland cluster. */
 const INITIAL_VIEW_STATE = {
-  longitude: -122.39,
-  latitude: 47.61,
-  zoom: 9.3,
+  longitude: -122.36,
+  latitude: 47.62,
+  zoom: 10.5,
 } as const
 
 /** Zoom level the camera eases to when a leviathan is selected. */

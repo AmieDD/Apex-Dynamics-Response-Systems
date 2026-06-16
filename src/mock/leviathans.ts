@@ -37,7 +37,7 @@ interface RosterSpec {
 const ROSTER: readonly RosterSpec[] = [
   {
     codename: 'Gorathos', archetype: 'Abyssal Colossus', status: 'LANDFALL', threat: 'Cataclysm',
-    from: { lng: -122.470, lat: 47.660 }, to: { lng: -122.345, lat: 47.606 },
+    from: { lng: -122.470, lat: 47.660 }, to: { lng: -122.333, lat: 47.606 },
     target: 'SEATTLE', startRange: 215,
   },
   {
@@ -47,13 +47,13 @@ const ROSTER: readonly RosterSpec[] = [
   },
   {
     codename: 'Terrakon', archetype: 'Tectonic Behemoth', status: 'SURFACED', threat: 'Elevated',
-    from: { lng: -122.560, lat: 47.230 }, to: { lng: -122.438, lat: 47.268 },
-    target: 'TACOMA', startRange: 201,
+    from: { lng: -122.420, lat: 47.540 }, to: { lng: -122.225, lat: 47.585 },
+    target: 'MERCER ISLAND', startRange: 165,
   },
   {
     codename: 'Nyxmora', archetype: 'Umbral Leviathan', status: 'SUBMERGED', threat: 'Stirring',
-    from: { lng: -122.360, lat: 47.985 }, to: { lng: -122.215, lat: 47.978 },
-    target: 'EVERETT', startRange: 342,
+    from: { lng: -122.320, lat: 47.730 }, to: { lng: -122.210, lat: 47.678 },
+    target: 'KIRKLAND', startRange: 188,
   },
 ] as const
 

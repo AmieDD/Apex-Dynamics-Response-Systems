@@ -367,21 +367,22 @@ describe('deriveAdvance', () => {
 })
 
 describe('roster geography', () => {
-  // Puget Sound bounding box (generous): keeps the roster anchored to the
-  // Seattle region so an accidental relocation to another coastline is caught.
+  // Central Seattle bounding box (tight): keeps the roster clustered around the
+  // Seattle–Bellevue core so the opening camera stays zoomed in and an
+  // accidental relocation south to Tacoma or north to Everett is caught.
   const SOUND_BOUNDS = {
-    minLng: -123.2,
-    maxLng: -121.9,
-    minLat: 47.0,
-    maxLat: 48.3,
+    minLng: -122.65,
+    maxLng: -122.10,
+    minLat: 47.45,
+    maxLat: 47.80,
   } as const
 
   /** Named landfall targets the roster is allowed to advance toward. */
   const PUGET_SOUND_TARGETS = new Set([
     'SEATTLE',
     'BELLEVUE',
-    'TACOMA',
-    'EVERETT',
+    'MERCER ISLAND',
+    'KIRKLAND',
   ])
 
   function inBounds(point: { lng: number; lat: number }): boolean {
