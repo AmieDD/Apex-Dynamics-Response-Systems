@@ -175,19 +175,19 @@ describe('reportLandfall', () => {
   it('logs a CRIT landfall and track reacquisition', () => {
     const { result } = renderHook(() => useCommandState())
 
-    act(() => result.current.reportLandfall('Gorathos', 'SAN FRANCISCO', 215))
+    act(() => result.current.reportLandfall('Gorathos', 'SEATTLE', 215))
 
     const event = result.current.feed[0]
     expect(event.severity).toBe('CRIT')
     expect(event.message).toBe(
-      'GORATHOS reached landfall at SAN FRANCISCO — repelled. Track reacquired at 215km.',
+      'GORATHOS reached landfall at SEATTLE — repelled. Track reacquired at 215km.',
     )
   })
 
   it('rounds the reacquired range in the readout', () => {
     const { result } = renderHook(() => useCommandState())
 
-    act(() => result.current.reportLandfall('Vespyra', 'SAN FRANCISCO', 214.6))
+    act(() => result.current.reportLandfall('Vespyra', 'SEATTLE', 214.6))
 
     expect(result.current.feed[0].message).toContain('Track reacquired at 215km.')
   })
@@ -196,7 +196,7 @@ describe('reportLandfall', () => {
     const { result } = renderHook(() => useCommandState())
     const before = result.current.leviathans
 
-    act(() => result.current.reportLandfall('Gorathos', 'SAN FRANCISCO', 215))
+    act(() => result.current.reportLandfall('Gorathos', 'SEATTLE', 215))
 
     expect(result.current.leviathans).toBe(before)
   })

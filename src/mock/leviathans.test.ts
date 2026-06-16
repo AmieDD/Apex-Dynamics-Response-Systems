@@ -13,6 +13,7 @@ import {
   REPEL_DECAY_PER_TICK,
   REPEL_KNOCKBACK_FRAC,
   REPEL_KNOCKBACK_MAX,
+  ANCHOR,
   createRoster,
   cycleAt,
   deriveAdvance,
@@ -362,5 +363,51 @@ describe('deriveAdvance', () => {
 
     expect(early.status).toBe('INBOUND')
     expect(late.status).toBe('LANDFALL')
+  })
+})
+
+describe('roster geography', () => {
+  // Central Seattle bounding box (tight): keeps the roster clustered around the
+  // Seattle–Bellevue core so the opening camera stays zoomed in and an
+  // accidental relocation south to Tacoma or north to Everett is caught.
+  const SOUND_BOUNDS = {
+    minLng: -122.65,
+    maxLng: -122.10,
+    minLat: 47.45,
+    maxLat: 47.80,
+  } as const
+
+  /** Named landfall targets the roster is allowed to advance toward. */
+  const PUGET_SOUND_TARGETS = new Set([
+    'SEATTLE',
+    'BELLEVUE',
+    'MERCER ISLAND',
+    'KIRKLAND',
+  ])
+
+  function inBounds(point: { lng: number; lat: number }): boolean {
+    return (
+      point.lng >= SOUND_BOUNDS.minLng &&
+      point.lng <= SOUND_BOUNDS.maxLng &&
+      point.lat >= SOUND_BOUNDS.minLat &&
+      point.lat <= SOUND_BOUNDS.maxLat
+    )
+  }
+
+  it('spawns and targets every leviathan within the Puget Sound bounds', () => {
+    for (const lev of createRoster()) {
+      expect(inBounds(lev.from)).toBe(true)
+      expect(inBounds(lev.to)).toBe(true)
+    }
+  })
+
+  it('names only Puget Sound landfall targets', () => {
+    for (const lev of createRoster()) {
+      expect(PUGET_SOUND_TARGETS.has(lev.target)).toBe(true)
+    }
+  })
+
+  it('anchors the roster within the Puget Sound bounds', () => {
+    expect(inBounds(ANCHOR)).toBe(true)
   })
 })

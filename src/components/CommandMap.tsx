@@ -28,11 +28,13 @@ import type { Leviathan, LeviathanStatus } from '../mock/types'
 const MAP_STYLE_URL =
   'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
 
-/** Opening camera framing the SF-Bay tracks (spawns out west, targets inland). */
+/** Opening camera framing the central Seattle/Bellevue tracks (spawns out in
+    the Sound, targets the close-in shoreline cities). Kept zoomed in by holding
+    every leviathan inside the Seattle–Mercer Island–Bellevue–Kirkland cluster. */
 const INITIAL_VIEW_STATE = {
-  longitude: -122.39,
-  latitude: 37.72,
-  zoom: 10.3,
+  longitude: -122.36,
+  latitude: 47.62,
+  zoom: 10.5,
 } as const
 
 /** Zoom level the camera eases to when a leviathan is selected. */
@@ -348,6 +350,31 @@ export default function CommandMap({
             }}
           />
         </Source>
+
+        {/* Landfall target city labels, pinned at each track's destination so
+            the tactical objective reads on the map (Seattle/Bellevue/Mercer
+            Island/Kirkland). Non-interactive and decorative — the roster rail
+            carries the same target for assistive tech. At LANDFALL the
+            leviathan's dot reaches this exact point, so the label fades back to
+            yield to the flashing LANDFALL flag flown above the dot. */}
+        {derived.map(({ lev, track, status, color }) => (
+          <Marker
+            key={`target-label-${lev.id}`}
+            longitude={track.to.lng}
+            latitude={track.to.lat}
+            anchor="bottom"
+            offset={[0, -9]}
+            style={{ pointerEvents: 'none' }}
+          >
+            <span
+              className={`kdn-target-label${status === 'LANDFALL' ? ' kdn-target-label--yield' : ''}`}
+              style={{ color }}
+              aria-hidden="true"
+            >
+              {lev.target}
+            </span>
+          </Marker>
+        ))}
 
         {derived.map(({ lev, pos, status, eta, color }) => (
           <LeviathanMarker

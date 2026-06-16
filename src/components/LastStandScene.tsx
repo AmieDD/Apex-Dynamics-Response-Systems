@@ -17,11 +17,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
+import { LAST_STAND_CITIES } from '../mock/lastStandCities'
+
 /** The two cities in the scenario, by field side. Populations are mocked. */
-const CITIES = [
-  { name: 'NORTHPOINT', side: 'left', population: 412000 },
-  { name: 'BAYRIDGE', side: 'right', population: 318000 },
-] as const
+const CITIES = LAST_STAND_CITIES
 
 /** Total run length (ms); matches the `.ls-advance-*` keyframe durations. */
 const LS_RESOLVE_MS = 4600
@@ -43,7 +42,7 @@ function formatPopulation(count: number): string {
  * Do not add fairness or explanation here; this is the mocked decision seam.
  */
 function chooseCityToSave(): string {
-  return Math.random() < 0.5 ? 'NORTHPOINT' : 'BAYRIDGE'
+  return Math.random() < 0.5 ? 'BREMERTON' : 'OLYMPIA'
 }
 
 /** Detects the user's reduced-motion preference (SSR/test-safe). */
@@ -76,7 +75,7 @@ export function LastStandScene(): React.JSX.Element {
     return () => window.clearTimeout(timer)
   }, [runId, reducedMotion])
 
-  const lostCity = savedCity === 'NORTHPOINT' ? 'BAYRIDGE' : 'NORTHPOINT'
+  const lostCity = savedCity === 'BREMERTON' ? 'OLYMPIA' : 'BREMERTON'
 
   return (
     <section

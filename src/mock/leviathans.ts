@@ -13,8 +13,8 @@ import type { Leviathan, LeviathanStatus } from './types'
 /** Fixed seed for the initial roster — change to reshuffle the world. */
 export const ROSTER_SEED = 'kaiju-defense-network-v1'
 
-/** Coastal anchor the roster spawns around (Pacific coastal metropolis). */
-export const ANCHOR = { lng: -122.486, lat: 37.769 } as const
+/** Coastal anchor the roster spawns around (Puget Sound metropolis). */
+export const ANCHOR = { lng: -122.335, lat: 47.606 } as const
 
 interface RosterSpec {
   codename: string
@@ -32,28 +32,28 @@ interface RosterSpec {
 }
 
 /** Curated roster identity; numeric stats are seeded around these anchors.
-    Track endpoints are real SF-Bay coordinates so each leviathan advances
+    Track endpoints are real Puget Sound coordinates so each leviathan advances
     from open water toward a named coastal target. */
 const ROSTER: readonly RosterSpec[] = [
   {
     codename: 'Gorathos', archetype: 'Abyssal Colossus', status: 'LANDFALL', threat: 'Cataclysm',
-    from: { lng: -122.648, lat: 37.798 }, to: { lng: -122.402, lat: 37.795 },
-    target: 'SAN FRANCISCO', startRange: 215,
+    from: { lng: -122.470, lat: 47.660 }, to: { lng: -122.333, lat: 47.606 },
+    target: 'SEATTLE', startRange: 215,
   },
   {
     codename: 'Vespyra', archetype: 'Tempest Wyrm', status: 'INBOUND', threat: 'Critical',
-    from: { lng: -122.628, lat: 37.692 }, to: { lng: -122.428, lat: 37.765 },
-    target: 'SAN FRANCISCO', startRange: 91,
+    from: { lng: -122.540, lat: 47.560 }, to: { lng: -122.200, lat: 47.610 },
+    target: 'BELLEVUE', startRange: 91,
   },
   {
     codename: 'Terrakon', archetype: 'Tectonic Behemoth', status: 'SURFACED', threat: 'Elevated',
-    from: { lng: -122.285, lat: 37.615 }, to: { lng: -122.282, lat: 37.798 },
-    target: 'OAKLAND', startRange: 201,
+    from: { lng: -122.420, lat: 47.540 }, to: { lng: -122.225, lat: 47.585 },
+    target: 'MERCER ISLAND', startRange: 165,
   },
   {
     codename: 'Nyxmora', archetype: 'Umbral Leviathan', status: 'SUBMERGED', threat: 'Stirring',
-    from: { lng: -122.225, lat: 37.578 }, to: { lng: -122.158, lat: 37.692 },
-    target: 'SAN LEANDRO', startRange: 342,
+    from: { lng: -122.320, lat: 47.730 }, to: { lng: -122.210, lat: 47.678 },
+    target: 'KIRKLAND', startRange: 188,
   },
 ] as const
 
