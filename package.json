@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "sync:workshop-images": "node scripts/sync-workshop-images.mjs"
+    "sync:workshop-images": "node scripts/sync-workshop-images.mjs",
+    "build:workshop-nav": "node scripts/build-workshop-nav.mjs",
+    "lint:workshop-nav": "node scripts/build-workshop-nav.mjs --check"
   },
   "dependencies": {
     "maplibre-gl": "^4.7.1",
