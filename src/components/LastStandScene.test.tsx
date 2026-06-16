@@ -36,7 +36,7 @@ function resolveRun(): void {
 
 describe('LastStandScene', () => {
   it('frames the panel as a mocked AI agent decision', () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0.2) // saves NORTHPOINT
+    vi.spyOn(Math, 'random').mockReturnValue(0.2) // saves BREMERTON
     render(<LastStandScene />)
 
     expect(
@@ -58,26 +58,26 @@ describe('LastStandScene', () => {
   })
 
   it('narrates the saved and sacrificed cities once resolved', () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0.2) // saves NORTHPOINT
+    vi.spyOn(Math, 'random').mockReturnValue(0.2) // saves BREMERTON
     render(<LastStandScene />)
 
     resolveRun()
 
     expect(
-      screen.getByText('SAVED NORTHPOINT · SACRIFICED BAYRIDGE'),
+      screen.getByText('SAVED BREMERTON · SACRIFICED OLYMPIA'),
     ).toBeTruthy()
     expect(screen.getByText('SAVED')).toBeTruthy()
     expect(screen.getByText('SACRIFICED')).toBeTruthy()
   })
 
   it('reflects the coin-flip outcome for the other city', () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0.8) // saves BAYRIDGE
+    vi.spyOn(Math, 'random').mockReturnValue(0.8) // saves OLYMPIA
     render(<LastStandScene />)
 
     resolveRun()
 
     expect(
-      screen.getByText('SAVED BAYRIDGE · SACRIFICED NORTHPOINT'),
+      screen.getByText('SAVED OLYMPIA · SACRIFICED BREMERTON'),
     ).toBeTruthy()
   })
 
@@ -86,34 +86,34 @@ describe('LastStandScene', () => {
     render(<LastStandScene />)
 
     // Populations are visible before the agent resolves.
-    expect(screen.getByText('POP 412,000')).toBeTruthy()
-    expect(screen.getByText('POP 318,000')).toBeTruthy()
+    expect(screen.getByText('POP 44,000')).toBeTruthy()
+    expect(screen.getByText('POP 55,000')).toBeTruthy()
   })
 
   it('reports the human and kaiju cost only once resolved', () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0.2) // saves NORTHPOINT, loses BAYRIDGE
+    vi.spyOn(Math, 'random').mockReturnValue(0.2) // saves BREMERTON, loses OLYMPIA
     render(<LastStandScene />)
 
     expect(
-      screen.queryByText('318,000 LOST · 1 KAIJU LANDED · 1 REPELLED'),
+      screen.queryByText('55,000 LOST · 1 KAIJU LANDED · 1 REPELLED'),
     ).toBeNull()
 
     resolveRun()
 
     expect(
-      screen.getByText('318,000 LOST · 1 KAIJU LANDED · 1 REPELLED'),
+      screen.getByText('55,000 LOST · 1 KAIJU LANDED · 1 REPELLED'),
     ).toBeTruthy()
   })
 
   it('re-runs the decision when RE-RUN is pressed', () => {
-    const random = vi.spyOn(Math, 'random').mockReturnValue(0.2) // NORTHPOINT
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.2) // BREMERTON
     render(<LastStandScene />)
     resolveRun()
     expect(
-      screen.getByText('SAVED NORTHPOINT · SACRIFICED BAYRIDGE'),
+      screen.getByText('SAVED BREMERTON · SACRIFICED OLYMPIA'),
     ).toBeTruthy()
 
-    random.mockReturnValue(0.8) // re-roll now saves BAYRIDGE
+    random.mockReturnValue(0.8) // re-roll now saves OLYMPIA
     fireEvent.click(screen.getByText('RE-RUN'))
 
     // Re-run returns to the pending state before resolving again.
@@ -121,7 +121,7 @@ describe('LastStandScene', () => {
 
     resolveRun()
     expect(
-      screen.getByText('SAVED BAYRIDGE · SACRIFICED NORTHPOINT'),
+      screen.getByText('SAVED OLYMPIA · SACRIFICED BREMERTON'),
     ).toBeTruthy()
   })
 })

@@ -44,7 +44,7 @@ export interface Leviathan {
   from: { lng: number; lat: number }
   /** Inbound-track landfall target the leviathan advances toward. */
   to: { lng: number; lat: number }
-  /** Human-readable landfall target, e.g. "SAN FRANCISCO". */
+  /** Human-readable landfall target, e.g. "SEATTLE". */
   target: string
   /** Engagement range (km) at spawn; the track's full length in range terms. */
   startRange: number

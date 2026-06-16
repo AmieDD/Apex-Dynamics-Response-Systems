@@ -28,11 +28,12 @@ import type { Leviathan, LeviathanStatus } from '../mock/types'
 const MAP_STYLE_URL =
   'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
 
-/** Opening camera framing the SF-Bay tracks (spawns out west, targets inland). */
+/** Opening camera framing the Puget Sound tracks (spawns out in the Sound,
+    targets the shoreline cities). */
 const INITIAL_VIEW_STATE = {
   longitude: -122.39,
-  latitude: 37.72,
-  zoom: 10.3,
+  latitude: 47.61,
+  zoom: 9.3,
 } as const
 
 /** Zoom level the camera eases to when a leviathan is selected. */
