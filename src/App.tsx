@@ -102,6 +102,7 @@ function App(): React.JSX.Element {
               leviathans={leviathans}
               selectedId={selectedId}
               select={select}
+              threatLevel={threatLevel}
               alertActive={alertActive}
               reportLandfall={reportLandfall}
               reportStatus={reportStatus}
