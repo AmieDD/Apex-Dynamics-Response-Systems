@@ -692,6 +692,135 @@
   }
 }
 
+/* Hidden easter egg (CommandMap.tsx): an invisible clickable hotspot pinned over
+   Redmond. At rest it carries no visual chrome so the surprise stays hidden —
+   only the pointer cursor hints that something is there. On hover or keyboard
+   focus a faint accent glow breathes in, just enough to reward a curious cursor
+   without giving the egg away. Sized as a comfortable tap target. */
+.kdn-egg-hotspot {
+  display: block;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 0 0 0 rgb(var(--accent) / 0);
+  cursor: pointer;
+  transition:
+    background 220ms ease-out,
+    box-shadow 220ms ease-out;
+}
+
+.kdn-egg-hotspot:hover,
+.kdn-egg-hotspot:focus-visible {
+  outline: none;
+  background: radial-gradient(
+    circle,
+    rgb(var(--accent) / 0.35) 0%,
+    rgb(var(--accent) / 0) 70%
+  );
+  box-shadow: 0 0 10px 2px rgb(var(--accent) / 0.3);
+  animation: kdn-egg-hint 1.6s ease-in-out infinite;
+}
+
+@keyframes kdn-egg-hint {
+  0%,
+  100% {
+    box-shadow: 0 0 8px 1px rgb(var(--accent) / 0.22);
+  }
+  50% {
+    box-shadow: 0 0 13px 3px rgb(var(--accent) / 0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kdn-egg-hotspot,
+  .kdn-egg-hotspot:hover,
+  .kdn-egg-hotspot:focus-visible {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* The summoned Clipzilla: a speech bubble stacked above the mascot pose, popping
+   in at Redmond and fading out on its own. Non-interactive (pointer-events are
+   disabled on the marker) so it never blocks the map. */
+.kdn-clipzilla-egg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: max-content;
+  max-width: 200px;
+  animation: kdn-clipzilla-pop 260ms ease-out;
+}
+
+.kdn-clipzilla-bubble {
+  position: relative;
+  margin: 0;
+  padding: 8px 11px;
+  border: 1px solid rgb(var(--accent));
+  border-radius: 8px;
+  background: rgb(var(--surface) / 0.96);
+  box-shadow: 0 0 14px rgb(var(--accent) / 0.35);
+  color: rgb(var(--text));
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+/* Speech-bubble tail pointing down toward the mascot. */
+.kdn-clipzilla-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  transform: translateX(-50%) rotate(45deg);
+  border-right: 1px solid rgb(var(--accent));
+  border-bottom: 1px solid rgb(var(--accent));
+  background: rgb(var(--surface) / 0.96);
+}
+
+.kdn-clipzilla-egg-img {
+  height: 72px;
+  width: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.55));
+  animation: kdn-clipzilla-bob 1.8s ease-in-out infinite;
+}
+
+@keyframes kdn-clipzilla-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes kdn-clipzilla-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kdn-clipzilla-egg,
+  .kdn-clipzilla-egg-img {
+    animation: none;
+  }
+}
+
 /* THREATCON readout (TopBar): a brief scale-and-glow bump that replays whenever
    the number's keyed span remounts on a threat-condition change, echoing the
    left-rail ladder's escalation without any component state. */

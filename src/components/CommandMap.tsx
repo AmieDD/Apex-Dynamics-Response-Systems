@@ -11,7 +11,7 @@
 // the feed logs the repel + reacquire. prefers-reduced-motion freezes the
 // advance, placing each leviathan at a meaningful static position instead.
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Layer, Map, Marker, Source, type MapRef } from 'react-map-gl/maplibre'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -21,7 +21,8 @@ import {
   cycleAt,
   deriveAdvance,
 } from '../mock/leviathans'
-import { threatColor, threatLabel } from '../mock/severity'
+import { clipzillaQuipBank, pickQuip } from '../mock/clipzilla'
+import { threatColor, threatLabel, type ThreatLevel } from '../mock/severity'
 import type { Leviathan, LeviathanStatus } from '../mock/types'
 
 /** Key-free CARTO dark-matter vector style (verified, no API token). */
@@ -39,6 +40,29 @@ const INITIAL_VIEW_STATE = {
 
 /** Zoom level the camera eases to when a leviathan is selected. */
 const FOCUS_ZOOM = 12
+
+/** Hidden easter egg: clicking Redmond — fittingly, Clippy's old hometown —
+    summons Clipzilla with a fleeting Clippy-style quip that fades after a few
+    seconds. Coordinates pin the invisible hotspot to the city itself. */
+const REDMOND = { lng: -122.1215, lat: 47.674 } as const
+
+/** How long the summoned Clipzilla lingers before fading out (ms). */
+const CLIPZILLA_EGG_DURATION_MS = 5000
+
+/** Inline kaiju-badge fallback for the summoned Clipzilla, mirroring the top-bar
+    mascot's graceful degradation so a missing pose never breaks the egg. */
+const CLIPZILLA_EGG_FALLBACK = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">` +
+    `<path d="M11 12 8 5 15 10Z" fill="#e6edf3"/>` +
+    `<path d="M29 12 32 5 25 10Z" fill="#e6edf3"/>` +
+    `<ellipse cx="20" cy="22" rx="13" ry="12" fill="#863bff"/>` +
+    `<circle cx="15" cy="20" r="3.5" fill="#fff"/>` +
+    `<circle cx="25" cy="20" r="3.5" fill="#fff"/>` +
+    `<circle cx="15" cy="20.5" r="1.6" fill="#0d1117"/>` +
+    `<circle cx="25" cy="20.5" r="1.6" fill="#0d1117"/>` +
+    `<path d="M15 28Q20 32 25 28" stroke="#0d1117" stroke-width="1.5" stroke-linecap="round"/>` +
+    `</svg>`,
+)}`
 
 /** Per-feature properties carried on the track GeoJSON. */
 interface TrackProps {
@@ -73,6 +97,8 @@ export interface CommandMapProps {
   selectedId: string | null
   /** Selects (or clears) the focused leviathan. */
   select: (id: string | null) => void
+  /** Highest active threat level; tunes the hidden Clipzilla easter egg's mood. */
+  threatLevel: ThreatLevel
   /** Whether a citywide alert is active (renders a scrim overlay). */
   alertActive: boolean
   /** Logs a leviathan reaching landfall (repelled + track reacquired). */
@@ -91,6 +117,7 @@ export default function CommandMap({
   leviathans,
   selectedId,
   select,
+  threatLevel,
   alertActive,
   reportLandfall,
   reportStatus,
@@ -98,6 +125,37 @@ export default function CommandMap({
 }: CommandMapProps): React.JSX.Element {
   const mapRef = useRef<MapRef | null>(null)
   const reducedMotion = prefersReducedMotion()
+
+  // Hidden easter egg: the currently-shown Clipzilla quip (null = dormant). A
+  // timer ref holds the pending fade-out so repeat clicks restart the countdown
+  // cleanly instead of stacking timers, and a last-quip ref lets the picker skip
+  // the previous line so back-to-back summons never repeat.
+  const [eggQuip, setEggQuip] = useState<string | null>(null)
+  const eggTimerRef = useRef<number | null>(null)
+  const lastQuipRef = useRef<string | null>(null)
+  const summonClipzilla = useCallback(() => {
+    const bank = clipzillaQuipBank(threatLevel, alertActive)
+    const quip = pickQuip(bank, lastQuipRef.current)
+    lastQuipRef.current = quip
+    setEggQuip(quip)
+    if (eggTimerRef.current != null) {
+      window.clearTimeout(eggTimerRef.current)
+    }
+    eggTimerRef.current = window.setTimeout(() => {
+      setEggQuip(null)
+      eggTimerRef.current = null
+    }, CLIPZILLA_EGG_DURATION_MS)
+  }, [threatLevel, alertActive])
+  // Clear any pending fade-out timer on unmount so it never fires into a torn
+  // down component.
+  useEffect(
+    () => () => {
+      if (eggTimerRef.current != null) {
+        window.clearTimeout(eggTimerRef.current)
+      }
+    },
+    [],
+  )
 
   // Smooth sim clock driving the inbound advance. Held in state for rendering
   // and mirrored to a ref so the selection fly-to can read it without
@@ -389,6 +447,57 @@ export default function CommandMap({
             onSelect={select}
           />
         ))}
+
+        {/* Hidden easter egg: an invisible hotspot pinned to Redmond. Clicking
+            it summons Clipzilla — a nod to the Clippy assistant that once called
+            this city home. Carries an aria-label so assistive tech can find the
+            otherwise-silent surprise. */}
+        <Marker
+          longitude={REDMOND.lng}
+          latitude={REDMOND.lat}
+          anchor="center"
+          onClick={(event) => {
+            event.originalEvent.stopPropagation()
+            summonClipzilla()
+          }}
+        >
+          <button
+            type="button"
+            className="kdn-egg-hotspot"
+            aria-label="Redmond — summon Clipzilla"
+          />
+        </Marker>
+
+        {/* The summoned Clipzilla: a speech bubble + mascot pose that pops in at
+            Redmond and fades itself out after a few seconds. Non-interactive so
+            it never blocks the map underneath. */}
+        {eggQuip != null && (
+          <Marker
+            longitude={REDMOND.lng}
+            latitude={REDMOND.lat}
+            anchor="bottom"
+            offset={[0, -12]}
+            style={{ pointerEvents: 'none' }}
+          >
+            <div className="kdn-clipzilla-egg" role="status">
+              <p className="kdn-clipzilla-bubble">{eggQuip}</p>
+              <img
+                src={`${import.meta.env.BASE_URL}Clipzilla.png`}
+                alt="Clipzilla popping up with a message"
+                className="kdn-clipzilla-egg-img"
+                width={72}
+                height={72}
+                onError={(e) => {
+                  const img = e.currentTarget
+                  if (img.src !== CLIPZILLA_EGG_FALLBACK) {
+                    img.onerror = null
+                    img.src = CLIPZILLA_EGG_FALLBACK
+                  }
+                }}
+              />
+            </div>
+          </Marker>
+        )}
       </Map>
 
       {alertActive && (
