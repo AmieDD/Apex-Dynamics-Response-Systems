@@ -24,6 +24,7 @@ import {
 import { clipzillaQuipBank, pickQuip } from '../mock/clipzilla'
 import { threatColor, threatLabel, type ThreatLevel } from '../mock/severity'
 import type { Leviathan, LeviathanStatus } from '../mock/types'
+import { isWebglAvailable } from '../isWebglAvailable'
 
 /** Key-free CARTO dark-matter vector style (verified, no API token). */
 const MAP_STYLE_URL =
@@ -125,6 +126,17 @@ export default function CommandMap({
 }: CommandMapProps): React.JSX.Element {
   const mapRef = useRef<MapRef | null>(null)
   const reducedMotion = prefersReducedMotion()
+
+  // WebGL availability is fixed for the session, so probe once at mount via a
+  // lazy initializer rather than per render. maplibre-gl v4 needs a WebGL
+  // context; when it's missing (hardware acceleration off, a locked-down
+  // browser) the map can never mount and there is nothing to click.
+  const [webglOk] = useState(() => isWebglAvailable())
+  // Async map failures — a blocked CARTO basemap CDN, a tile/style load error —
+  // surface through the Map's onError after mount. Either condition drops the
+  // hero to the non-map fallback below.
+  const [mapError, setMapError] = useState<Error | null>(null)
+  const showFallback = !webglOk || mapError != null
 
   // Hidden easter egg: the currently-shown Clipzilla quip (null = dormant). A
   // timer ref holds the pending fade-out so repeat clicks restart the countdown
@@ -359,16 +371,74 @@ export default function CommandMap({
     features,
   }
 
+  // The summoned Clipzilla bubble markup, reused verbatim by the live map
+  // (inside a Marker) and the no-WebGL fallback (positioned with flow layout) so
+  // the easter egg looks identical whether or not MapLibre is available.
+  const eggBubble =
+    eggQuip != null ? (
+      <div className="kdn-clipzilla-egg" role="status">
+        <p className="kdn-clipzilla-bubble">{eggQuip}</p>
+        <img
+          src={`${import.meta.env.BASE_URL}Clipzilla.png`}
+          alt="Clipzilla popping up with a message"
+          className="kdn-clipzilla-egg-img"
+          width={72}
+          height={72}
+          onError={(e) => {
+            const img = e.currentTarget
+            if (img.src !== CLIPZILLA_EGG_FALLBACK) {
+              img.onerror = null
+              img.src = CLIPZILLA_EGG_FALLBACK
+            }
+          }}
+        />
+      </div>
+    ) : null
+
   return (
     <div className="relative h-full w-full overflow-hidden">
-      <Map
-        ref={mapRef}
-        initialViewState={INITIAL_VIEW_STATE}
-        mapStyle={MAP_STYLE_URL}
-        style={{ width: '100%', height: '100%' }}
-        attributionControl={false}
-        onClick={() => select(null)}
-      >
+      {showFallback ? (
+        // No WebGL (or the map errored after mount): MapLibre can't render, so
+        // swap in a non-map fallback that states what's wrong yet keeps the
+        // Redmond easter egg reachable — the original "clicking Redmond does
+        // nothing" complaint is solved even with no map.
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center"
+          style={{ background: 'rgb(var(--surface) / 0.6)' }}
+        >
+          <p
+            role="status"
+            className="max-w-md text-sm"
+            style={{
+              color: 'rgb(var(--text))',
+              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+            }}
+          >
+            The live tactical map needs WebGL and a network connection, neither of
+            which is available right now. Core defense controls remain online.
+          </p>
+          {/* Same invisible Redmond hotspot and summon handler as the live map,
+              hoisted out of MapLibre so the Clipzilla egg still triggers. */}
+          <div className="relative flex flex-col items-center gap-2">
+            <button
+              type="button"
+              className="kdn-egg-hotspot"
+              aria-label="Redmond — summon Clipzilla"
+              onClick={summonClipzilla}
+            />
+            {eggBubble}
+          </div>
+        </div>
+      ) : (
+        <Map
+          ref={mapRef}
+          initialViewState={INITIAL_VIEW_STATE}
+          mapStyle={MAP_STYLE_URL}
+          style={{ width: '100%', height: '100%' }}
+          attributionControl={false}
+          onClick={() => select(null)}
+          onError={(e) => setMapError(e.error)}
+        >
         <Source id="kdn-trackers" type="geojson" data={trackData}>
           <Layer
             id="kdn-track-full"
@@ -471,7 +541,7 @@ export default function CommandMap({
         {/* The summoned Clipzilla: a speech bubble + mascot pose that pops in at
             Redmond and fades itself out after a few seconds. Non-interactive so
             it never blocks the map underneath. */}
-        {eggQuip != null && (
+        {eggBubble != null && (
           <Marker
             longitude={REDMOND.lng}
             latitude={REDMOND.lat}
@@ -479,26 +549,11 @@ export default function CommandMap({
             offset={[0, -12]}
             style={{ pointerEvents: 'none' }}
           >
-            <div className="kdn-clipzilla-egg" role="status">
-              <p className="kdn-clipzilla-bubble">{eggQuip}</p>
-              <img
-                src={`${import.meta.env.BASE_URL}Clipzilla.png`}
-                alt="Clipzilla popping up with a message"
-                className="kdn-clipzilla-egg-img"
-                width={72}
-                height={72}
-                onError={(e) => {
-                  const img = e.currentTarget
-                  if (img.src !== CLIPZILLA_EGG_FALLBACK) {
-                    img.onerror = null
-                    img.src = CLIPZILLA_EGG_FALLBACK
-                  }
-                }}
-              />
-            </div>
+            {eggBubble}
           </Marker>
         )}
-      </Map>
+        </Map>
+      )}
 
       {alertActive && (
         <div

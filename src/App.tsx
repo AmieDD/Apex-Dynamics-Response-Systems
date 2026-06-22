@@ -13,6 +13,7 @@ import { lazy, Suspense } from 'react'
 
 import { DispatchPanel } from './components/DispatchPanel'
 import { LeviathanRoster } from './components/LeviathanRoster'
+import { MapErrorBoundary } from './components/MapErrorBoundary'
 import { SignalFeed } from './components/SignalFeed'
 import { ThreatCondition } from './components/ThreatCondition'
 import { TopBar } from './components/TopBar'
@@ -97,18 +98,20 @@ function App(): React.JSX.Element {
         {/* Center: command map hero with the last-stand scenario as a
             top-left corner mini-map inset over the map. */}
         <div className="relative min-h-[20rem] overflow-hidden rounded-md border border-border lg:min-h-0">
-          <Suspense fallback={<MapLoadingPlaceholder />}>
-            <CommandMap
-              leviathans={leviathans}
-              selectedId={selectedId}
-              select={select}
-              threatLevel={threatLevel}
-              alertActive={alertActive}
-              reportLandfall={reportLandfall}
-              reportStatus={reportStatus}
-              reportRange={reportRange}
-            />
-          </Suspense>
+          <MapErrorBoundary>
+            <Suspense fallback={<MapLoadingPlaceholder />}>
+              <CommandMap
+                leviathans={leviathans}
+                selectedId={selectedId}
+                select={select}
+                threatLevel={threatLevel}
+                alertActive={alertActive}
+                reportLandfall={reportLandfall}
+                reportStatus={reportStatus}
+                reportRange={reportRange}
+              />
+            </Suspense>
+          </MapErrorBoundary>
           <Suspense fallback={null}>
             <LastStandScene />
           </Suspense>

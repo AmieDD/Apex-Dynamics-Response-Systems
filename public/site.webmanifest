@@ -2,21 +2,21 @@
   "name": "Kaiju Defense Network",
   "short_name": "KDN",
   "description": "Apex Dynamics command center for kaiju threat response.",
-  "id": "/",
-  "start_url": "/",
-  "scope": "/",
+  "id": "/Apex-Dynamics-Response-Systems/",
+  "start_url": "/Apex-Dynamics-Response-Systems/",
+  "scope": "/Apex-Dynamics-Response-Systems/",
   "display": "standalone",
   "background_color": "#0d1117",
   "theme_color": "#863bff",
   "icons": [
     {
-      "src": "/Clipzilla-Icon.png",
+      "src": "/Apex-Dynamics-Response-Systems/Clipzilla-Icon.png",
       "type": "image/png",
       "sizes": "1254x1254",
       "purpose": "any"
     },
     {
-      "src": "/Clipzilla.png",
+      "src": "/Apex-Dynamics-Response-Systems/Clipzilla.png",
       "type": "image/png",
       "sizes": "1254x1254",
       "purpose": "any"
