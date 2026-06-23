@@ -14,6 +14,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import CommandMap, { type CommandMapProps } from './CommandMap'
 import type { ThreatLevel } from '../mock/severity'
+import { isWebglAvailable } from '../isWebglAvailable'
+
+// WebGL detection is mocked: jsdom has no WebGL context so the real probe always
+// returns false, which would force every test down the no-map fallback path.
+// Default it to true here (the live-map path) and flip it per test when the
+// fallback itself is under test.
+vi.mock('../isWebglAvailable', () => ({
+  isWebglAvailable: vi.fn(() => true),
+}))
 
 // Lightweight stand-ins for the react-map-gl/maplibre primitives. Marker wires
 // its onClick to a synthetic event carrying the originalEvent.stopPropagation
@@ -59,6 +68,8 @@ const HOTSPOT_LABEL = 'Redmond — summon Clipzilla'
 beforeEach(() => {
   vi.useFakeTimers()
   vi.spyOn(Math, 'random').mockReturnValue(0)
+  // Default to the live-map path; the fallback test overrides this to false.
+  vi.mocked(isWebglAvailable).mockReturnValue(true)
   // Report reduced motion so CommandMap freezes its requestAnimationFrame
   // advance loop, keeping the test fast and deterministic.
   vi.stubGlobal(
@@ -157,5 +168,21 @@ describe('CommandMap Clipzilla easter egg', () => {
       vi.advanceTimersByTime(2)
     })
     expect(screen.queryByText(CALM_FIRST)).toBeNull()
+  })
+
+  it('drops to a no-map fallback that still summons Clipzilla without WebGL', () => {
+    // No WebGL context available: the live MapLibre canvas can never mount.
+    vi.mocked(isWebglAvailable).mockReturnValue(false)
+
+    renderEgg()
+
+    // The mocked Map is gone, replaced by an accessible status explaining why.
+    expect(screen.queryByTestId('map')).toBeNull()
+    expect(screen.getByText(/WebGL/i)).toBeTruthy()
+
+    // The Redmond hotspot remains reachable and still summons Clipzilla.
+    expect(screen.getByLabelText(HOTSPOT_LABEL)).toBeTruthy()
+    summon()
+    expect(screen.getByText(CALM_FIRST)).toBeTruthy()
   })
 })

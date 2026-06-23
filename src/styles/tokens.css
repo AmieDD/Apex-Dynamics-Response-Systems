@@ -714,7 +714,6 @@
 
 .kdn-egg-hotspot:hover,
 .kdn-egg-hotspot:focus-visible {
-  outline: none;
   background: radial-gradient(
     circle,
     rgb(var(--accent) / 0.35) 0%,
@@ -722,6 +721,13 @@
   );
   box-shadow: 0 0 10px 2px rgb(var(--accent) / 0.3);
   animation: kdn-egg-hint 1.6s ease-in-out infinite;
+}
+
+/* Keyboard users always get a visible accent ring, even though the breathing
+   glow alone could be mistaken for decoration. */
+.kdn-egg-hotspot:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
 }
 
 @keyframes kdn-egg-hint {
@@ -740,6 +746,26 @@
   .kdn-egg-hotspot:focus-visible {
     transition: none;
     animation: none;
+  }
+}
+
+/* Windows High Contrast / forced-colors mode strips box-shadow, gradient
+   backgrounds, and filters, so the accent glow and selection ring vanish.
+   Fall back to system-color borders/outlines so the hotspot and the selected
+   marker stay perceivable and keyboard-focusable. */
+@media (forced-colors: active) {
+  .kdn-egg-hotspot {
+    border: 2px solid ButtonText;
+  }
+
+  .kdn-egg-hotspot:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .kdn-marker--selected .kdn-marker-dot {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
   }
 }
 
