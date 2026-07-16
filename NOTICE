@@ -1,0 +1,51 @@
+# NOTICE
+
+Apex Dynamics Response Systems — Kaiju Defense Network
+Copyright (c) 2026 Apex Dynamics Response Systems
+
+This product is licensed under the terms of the MIT License; see the
+[LICENSE](LICENSE) file for the full text.
+
+## Third-Party Dependencies
+
+This product bundles or builds upon the following third-party open-source
+components. Each retains its own copyright and license; the notices below are
+provided as required by those licenses.
+
+### Runtime dependencies
+
+| Component    | License      | Project                                    |
+| ------------ | ------------ | ------------------------------------------ |
+| React        | MIT          | https://github.com/facebook/react          |
+| react-dom    | MIT          | https://github.com/facebook/react          |
+| react-map-gl | MIT          | https://github.com/visgl/react-map-gl      |
+| maplibre-gl  | BSD-3-Clause | https://github.com/maplibre/maplibre-gl-js |
+| seedrandom   | MIT          | https://github.com/davidbau/seedrandom     |
+
+### Build and development dependencies
+
+| Component            | License    | Project                                        |
+| -------------------- | ---------- | ---------------------------------------------- |
+| Vite                 | MIT        | https://github.com/vitejs/vite                 |
+| Tailwind CSS         | MIT        | https://github.com/tailwindlabs/tailwindcss    |
+| TypeScript           | Apache-2.0 | https://github.com/microsoft/TypeScript        |
+| Vitest               | MIT        | https://github.com/vitest-dev/vitest           |
+| Testing Library      | MIT        | https://github.com/testing-library             |
+
+The tables above summarize the primary declared dependencies. Refer to
+`package.json` and `package-lock.json` for the complete, versioned dependency
+tree and each package's bundled license text under `node_modules`.
+
+## Map Data and Basemap
+
+The command map is rendered with MapLibre GL (via react-map-gl) using the
+OpenFreeMap "dark" style served from `tiles.openfreemap.org`. The OpenFreeMap
+style is MIT-licensed. The underlying map data is © OpenStreetMap contributors
+and is licensed under the Open Database License
+([ODbL](https://opendatacommons.org/licenses/odbl/)); attribution is surfaced
+in-app through the MapLibre attribution control.
+
+## Self-Authored Assets
+
+The Clipzilla mascot artwork (`public/Clipzilla*.png`) is owned by Apex
+Dynamics Response Systems.
