@@ -1,6 +1,6 @@
 // Full-bleed MapLibre command map for the Kaiju Defense Network.
 //
-// Uses the key-free CARTO dark-matter vector style (no API token required) via
+// Uses the key-free OpenFreeMap dark style (no API token required) via
 // react-map-gl's MapLibre entry point. Each tracked leviathan advances inbound
 // from its open-water spawn toward a named landfall target along a scripted
 // track, looping forever — the seam where live HVE Core tracks would plug in.
@@ -11,9 +11,16 @@
 // the feed logs the repel + reacquire. prefers-reduced-motion freezes the
 // advance, placing each leviathan at a meaningful static position instead.
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 
-import { Layer, Map, Marker, Source, type MapRef } from 'react-map-gl/maplibre'
+import {
+  AttributionControl,
+  Layer,
+  Map,
+  Marker,
+  Source,
+  type MapRef,
+} from 'react-map-gl/maplibre'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson'
 
@@ -26,17 +33,18 @@ import { threatColor, threatLabel, type ThreatLevel } from '../mock/severity'
 import type { Leviathan, LeviathanStatus } from '../mock/types'
 import { isWebglAvailable } from '../isWebglAvailable'
 
-/** Key-free CARTO dark-matter vector style (verified, no API token). */
-const MAP_STYLE_URL =
-  'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+/** Key-free OpenFreeMap dark style (MIT style, ODbL data, no API token). */
+const MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/dark'
 
 /** Opening camera framing the central Seattle/Bellevue tracks (spawns out in
-    the Sound, targets the close-in shoreline cities). Kept zoomed in by holding
-    every leviathan inside the Seattle–Mercer Island–Bellevue–Kirkland cluster. */
+    the Sound, targets the close-in shoreline cities). Shifted east so Seattle
+    sits left-of-center and the eastern suburbs fill the frame, zoomed in to
+    hold every leviathan inside the Seattle–Mercer Island–Bellevue–Kirkland
+    cluster without clipping the outer spawns. */
 const INITIAL_VIEW_STATE = {
-  longitude: -122.36,
+  longitude: -122.29,
   latitude: 47.62,
-  zoom: 10.5,
+  zoom: 11,
 } as const
 
 /** Zoom level the camera eases to when a leviathan is selected. */
@@ -132,9 +140,9 @@ export default function CommandMap({
   // context; when it's missing (hardware acceleration off, a locked-down
   // browser) the map can never mount and there is nothing to click.
   const [webglOk] = useState(() => isWebglAvailable())
-  // Async map failures — a blocked CARTO basemap CDN, a tile/style load error —
-  // surface through the Map's onError after mount. Either condition drops the
-  // hero to the non-map fallback below.
+  // Async map failures — a blocked OpenFreeMap tile host, a tile/style load
+  // error — surface through the Map's onError after mount. Either condition
+  // drops the hero to the non-map fallback below.
   const [mapError, setMapError] = useState<Error | null>(null)
   const showFallback = !webglOk || mapError != null
 
@@ -439,7 +447,8 @@ export default function CommandMap({
           onClick={() => select(null)}
           onError={(e) => setMapError(e.error)}
         >
-        <Source id="kdn-trackers" type="geojson" data={trackData}>
+          <AttributionControl compact={false} />
+          <Source id="kdn-trackers" type="geojson" data={trackData}>
           <Layer
             id="kdn-track-full"
             type="line"
@@ -496,7 +505,7 @@ export default function CommandMap({
           >
             <span
               className={`kdn-target-label${status === 'LANDFALL' ? ' kdn-target-label--yield' : ''}`}
-              style={{ color }}
+              style={{ '--kdn-label-color': color } as CSSProperties}
               aria-hidden="true"
             >
               {lev.target}
@@ -641,7 +650,10 @@ function LeviathanMarker({
           <span className="kdn-marker-repelled">REPELLED</span>
         ) : (
           status === 'LANDFALL' && (
-            <span className="kdn-marker-landfall" style={{ color }}>
+            <span
+              className="kdn-marker-landfall"
+              style={{ '--kdn-label-color': color } as CSSProperties}
+            >
               LANDFALL
             </span>
           )
