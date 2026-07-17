@@ -663,21 +663,25 @@
    rather than colliding with them. Non-interactive. */
 .kdn-target-label {
   display: inline-block;
-  padding: 2px 5px;
+  padding: 2px 6px;
   border: 1px solid rgb(var(--border) / 0.7);
   border-radius: 3px;
-  background: rgb(var(--surface) / 0.9);
+  /* Solid chip so the basemap's texture never bleeds through the glyph edges —
+     a translucent backing was the main source of the "blurry" city labels. */
+  background: rgb(var(--surface));
   font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   line-height: 1;
   white-space: nowrap;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--kdn-label-color, currentColor) 62%, #fff);
-  text-shadow: 0 1px 2px rgb(0 0 0 / 0.95);
+  /* No soft drop shadow: on the solid dark chip the text is already high
+     contrast, and a blurred halo under 10px text just reads as fuzz. */
   pointer-events: none;
   transition: opacity 300ms ease-out;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* At LANDFALL the leviathan dot reaches the target point and flies its own
