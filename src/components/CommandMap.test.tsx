@@ -50,6 +50,7 @@ vi.mock('react-map-gl/maplibre', () => ({
   ),
   Source: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
   Layer: () => null,
+  AttributionControl: () => null,
 }))
 
 /** Auto-dismiss window the component waits before fading the quip out (ms). */

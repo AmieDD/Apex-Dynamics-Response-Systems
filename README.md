@@ -55,4 +55,4 @@ npm run lint
 ### Notes
 
 * `npm run dev` does not type-check, while `npm run build` runs a strict `tsc -b` first, so a build can fail even when the dev server runs cleanly.
-* The map basemap loads tiles over HTTPS from `basemaps.cartocdn.com`. Offline, the map renders blank but the rest of the app still loads.
+* The map basemap loads tiles over HTTPS from `tiles.openfreemap.org` (OpenFreeMap: MIT style, OpenStreetMap/ODbL data). Offline, the map renders blank but the rest of the app still loads.
