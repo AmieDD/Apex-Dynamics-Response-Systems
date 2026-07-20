@@ -2,7 +2,7 @@
 //
 // The hex values here mirror the CSS variables in src/styles/tokens.css and
 // must stay in sync. A text label is always available so color is never the
-// only signal that conveys severity (accessibility: DR-04).
+// only signal that conveys severity.
 
 export type ThreatLevel =
   | 'Dormant'

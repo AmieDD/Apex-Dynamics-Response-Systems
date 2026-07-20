@@ -1,0 +1,20 @@
+{
+  "id": "mon-2",
+  "codename": "Vespyra",
+  "archetype": "Tempest Wyrm",
+  "heightMeters": 98,
+  "weightTons": 41000,
+  "speedKmh": 62,
+  "submerged": false,
+  "spawn": {
+    "lng": -122.54,
+    "lat": 47.56
+  },
+  "target": "BELLEVUE",
+  "targetPos": {
+    "lng": -122.2,
+    "lat": 47.61
+  },
+  "spawnAt": 1784538000375,
+  "trackSteps": 14
+}

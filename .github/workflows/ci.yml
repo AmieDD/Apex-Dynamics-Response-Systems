@@ -35,6 +35,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check sensor-log artifacts are up to date
+        run: npm run lint:sensor-log
+
       - name: Test
         run: npm test
 

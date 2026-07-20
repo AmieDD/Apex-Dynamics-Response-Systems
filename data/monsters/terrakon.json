@@ -1,0 +1,20 @@
+{
+  "id": "mon-3",
+  "codename": "Terrakon",
+  "archetype": "Tectonic Behemoth",
+  "heightMeters": 120,
+  "weightTons": 67000,
+  "speedKmh": 22.5,
+  "submerged": false,
+  "spawn": {
+    "lng": -122.42,
+    "lat": 47.54
+  },
+  "target": "MERCER ISLAND",
+  "targetPos": {
+    "lng": -122.225,
+    "lat": 47.585
+  },
+  "spawnAt": 1784538000750,
+  "trackSteps": 11
+}
