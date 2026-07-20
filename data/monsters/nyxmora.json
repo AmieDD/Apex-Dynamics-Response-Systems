@@ -1,0 +1,20 @@
+{
+  "id": "mon-4",
+  "codename": "Nyxmora",
+  "archetype": "Umbral Leviathan",
+  "heightMeters": 155,
+  "weightTons": 73000,
+  "speedKmh": 48,
+  "submerged": true,
+  "spawn": {
+    "lng": -122.32,
+    "lat": 47.73
+  },
+  "target": "KIRKLAND",
+  "targetPos": {
+    "lng": -122.21,
+    "lat": 47.678
+  },
+  "spawnAt": 1784538001125,
+  "trackSteps": 13
+}

@@ -1,0 +1,20 @@
+{
+  "id": "mon-1",
+  "codename": "Gorathos",
+  "archetype": "Abyssal Colossus",
+  "heightMeters": 142,
+  "weightTons": 88000,
+  "speedKmh": 34.5,
+  "submerged": false,
+  "spawn": {
+    "lng": -122.47,
+    "lat": 47.66
+  },
+  "target": "SEATTLE",
+  "targetPos": {
+    "lng": -122.333,
+    "lat": 47.606
+  },
+  "spawnAt": 1784538000000,
+  "trackSteps": 12
+}

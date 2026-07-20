@@ -1,0 +1,20 @@
+{
+  "id": "mon-6",
+  "codename": "Molvorak",
+  "archetype": "Magma Wraith",
+  "heightMeters": 110,
+  "weightTons": 52000,
+  "speedKmh": 40,
+  "submerged": false,
+  "spawn": {
+    "lng": -122.15,
+    "lat": 47.5
+  },
+  "target": "BELLEVUE",
+  "targetPos": {
+    "lng": -122.2,
+    "lat": 47.615
+  },
+  "spawnAt": 1784538001875,
+  "trackSteps": 13
+}

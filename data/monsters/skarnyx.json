@@ -1,0 +1,20 @@
+{
+  "id": "mon-5",
+  "codename": "Skarnyx",
+  "archetype": "Brine Serpent",
+  "heightMeters": 88,
+  "weightTons": 29000,
+  "speedKmh": 55,
+  "submerged": true,
+  "spawn": {
+    "lng": -122.56,
+    "lat": 47.7
+  },
+  "target": "SEATTLE",
+  "targetPos": {
+    "lng": -122.34,
+    "lat": 47.61
+  },
+  "spawnAt": 1784538001500,
+  "trackSteps": 15
+}

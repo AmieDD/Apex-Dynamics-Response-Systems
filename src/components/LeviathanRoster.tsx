@@ -12,7 +12,7 @@ import type { Leviathan, LeviathanStatus } from '../mock/types'
 
 /** Proximity-urgency tint for each inbound status band. Reuses the threat
     palette as a shared urgency vocabulary; the status text label always rides
-    alongside the color so it is never the only signal (DR-04). */
+    alongside the color so it is never the only signal. */
 const STATUS_BAND_COLOR: Record<LeviathanStatus, string> = {
   SUBMERGED: 'rgb(var(--text-muted))',
   INBOUND: 'var(--threat-stirring)',

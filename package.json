@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -12,7 +15,9 @@
     "test:watch": "vitest",
     "sync:workshop-images": "node scripts/sync-workshop-images.mjs",
     "build:workshop-nav": "node scripts/build-workshop-nav.mjs",
-    "lint:workshop-nav": "node scripts/build-workshop-nav.mjs --check"
+    "lint:workshop-nav": "node scripts/build-workshop-nav.mjs --check",
+    "generate:sensor-log": "node --import ./scripts/ts-resolve.mjs scripts/generate-sensor-log.ts",
+    "lint:sensor-log": "node --import ./scripts/ts-resolve.mjs scripts/generate-sensor-log.ts --check"
   },
   "dependencies": {
     "maplibre-gl": "^4.7.1",
