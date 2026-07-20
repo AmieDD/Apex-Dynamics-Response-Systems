@@ -6,7 +6,7 @@
 // track, looping forever — the seam where live HVE Core tracks would plug in.
 // Every leviathan renders as a severity-colored, pulsing marker carrying its
 // codename initial so identity is never conveyed by color alone
-// (accessibility: DR-04), trailing a faint full track, a dashed remaining leg,
+// trailing a faint full track, a dashed remaining leg,
 // and a small landfall target reticle. On arrival a LANDFALL label flashes and
 // the feed logs the repel + reacquire. prefers-reduced-motion freezes the
 // advance, placing each leviathan at a meaningful static position instead.
