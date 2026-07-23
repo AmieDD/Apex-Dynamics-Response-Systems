@@ -1,0 +1,5 @@
+{
+  "chat.hookFilesLocations": {
+    ".github/hooks/shared": true
+  }
+}

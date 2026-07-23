@@ -56,3 +56,47 @@ npm run lint
 
 * `npm run dev` does not type-check, while `npm run build` runs a strict `tsc -b` first, so a build can fail even when the dev server runs cleanly.
 * The map basemap loads tiles over HTTPS from `tiles.openfreemap.org` (OpenFreeMap: MIT style, OpenStreetMap/ODbL data). Offline, the map renders blank but the rest of the app still loads.
+
+### Telemetry
+
+To opt-in to hve telemetry, create a `.hve-telemetry` file in the project root. More information on what is gathered [here](https://github.com/microsoft/hve-core/blob/main/docs/customization/local-telemetry.md):
+
+#### Linux/macOS:
+
+```bash
+# create .hve-telemetry in the project root
+touch .hve-telemetry
+```
+
+Generate the report which will be saved to `telemetry-report.html` in `.copilot-tracking/telemetry`:
+
+```bash
+# generate the telemetry report for today
+.github/hooks/shared/telemetry/generate-telemetry-report.sh
+
+# generate the telemetry report for all days
+.github/hooks/shared/telemetry/generate-telemetry-report.sh -d all
+
+# you can open the generated html in a browser after generation or generate and view the telemetry report
+.github/hooks/shared/telemetry/generate-telemetry-report.sh --open
+```
+
+#### Windows (PowerShell):
+
+```powershell
+# create .hve-telemetry in the project root
+New-Item -Path . -Name ".hve-telemetry" -ItemType "file"
+```
+
+Generate the report which will be saved to `telemetry-report.html` in `.copilot-tracking/telemetry`:
+
+```powershell
+# generate the telemetry report for today
+.github/hooks/shared/telemetry/Invoke-TelemetryReport.ps1
+
+# generate the telemetry report for all days
+.github/hooks/shared/telemetry/Invoke-TelemetryReport.ps1 -Date all
+
+# you can open the generated html in a browser after generation or generate and view the telemetry report
+.github/hooks/shared/telemetry/Invoke-TelemetryReport.ps1 -Open
+```
