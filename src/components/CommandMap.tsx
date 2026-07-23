@@ -135,6 +135,29 @@ export default function CommandMap({
   const mapRef = useRef<MapRef | null>(null)
   const reducedMotion = prefersReducedMotion()
 
+  // The OpenFreeMap dark style references sprite images (e.g. `wood-pattern`)
+  // that its sprite sheet doesn't ship, so MapLibre logs a noisy
+  // "Image could not be loaded" warning for each. MapLibre resolves those
+  // images while laying out the first tiles — *before* the map's `load` event —
+  // so the listener must be attached as early as possible. This callback ref
+  // fires the moment react-map-gl constructs the map (while the style is still
+  // fetching), registering a 1×1 transparent placeholder for any missing image
+  // so the style resolves cleanly and the console stays quiet.
+  const imageFallbackReady = useRef(false)
+  const setMapRef = useCallback((instance: MapRef | null) => {
+    mapRef.current = instance
+    if (instance == null || imageFallbackReady.current) {
+      return
+    }
+    imageFallbackReady.current = true
+    const map = instance.getMap()
+    map.on('styleimagemissing', (e) => {
+      if (!map.hasImage(e.id)) {
+        map.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) })
+      }
+    })
+  }, [])
+
   // WebGL availability is fixed for the session, so probe once at mount via a
   // lazy initializer rather than per render. maplibre-gl v4 needs a WebGL
   // context; when it's missing (hardware acceleration off, a locked-down
@@ -146,7 +169,7 @@ export default function CommandMap({
   const [mapError, setMapError] = useState<Error | null>(null)
   const showFallback = !webglOk || mapError != null
 
-  // Hidden easter egg: the currently-shown Clipzilla quip (null = dormant). A
+  // Clipzilla quip (null = dormant). A
   // timer ref holds the pending fade-out so repeat clicks restart the countdown
   // cleanly instead of stacking timers, and a last-quip ref lets the picker skip
   // the previous line so back-to-back summons never repeat.
@@ -177,9 +200,6 @@ export default function CommandMap({
     [],
   )
 
-  // Smooth sim clock driving the inbound advance. Held in state for rendering
-  // and mirrored to a ref so the selection fly-to can read it without
-  // re-subscribing every frame. Frozen entirely under reduced motion.
   const [simTime, setSimTime] = useState<number>(0)
   const simTimeRef = useRef<number>(0)
   useEffect(() => {
@@ -439,7 +459,7 @@ export default function CommandMap({
         </div>
       ) : (
         <Map
-          ref={mapRef}
+          ref={setMapRef}
           initialViewState={INITIAL_VIEW_STATE}
           mapStyle={MAP_STYLE_URL}
           style={{ width: '100%', height: '100%' }}
