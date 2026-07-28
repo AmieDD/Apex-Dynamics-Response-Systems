@@ -102,11 +102,11 @@ Generate the report which will be saved to `telemetry-report.html` in `.copilot-
 
 ```powershell
 # generate the telemetry report for today
-.github/hooks/shared/telemetry/Invoke-TelemetryReport.ps1
+pwsh .github/hooks/shared/telemetry/Invoke-TelemetryReport.ps1
 
 # generate the telemetry report for all days
-.github/hooks/shared/telemetry/Invoke-TelemetryReport.ps1 -Date all
+pwsh .github/hooks/shared/telemetry/Invoke-TelemetryReport.ps1 -Date all
 
 # you can open the generated html in a browser after generation or generate and view the telemetry report
-.github/hooks/shared/telemetry/Invoke-TelemetryReport.ps1 -Open
+pwsh .github/hooks/shared/telemetry/Invoke-TelemetryReport.ps1 -Open
 ```

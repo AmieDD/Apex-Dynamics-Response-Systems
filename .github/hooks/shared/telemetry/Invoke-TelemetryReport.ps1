@@ -63,7 +63,7 @@ if (-not $RepoRoot -and (Get-Command git -ErrorAction SilentlyContinue)) {
     try { $RepoRoot = & git -C $PSScriptRoot rev-parse --show-toplevel 2>$null } catch { $RepoRoot = $null }
 }
 if (-not $RepoRoot) {
-    $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+    $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '../../../..')).Path
 }
 #endregion Resolve repo root
 
