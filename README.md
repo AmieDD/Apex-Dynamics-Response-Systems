@@ -63,6 +63,11 @@ To opt-in to hve telemetry, create a `.hve-telemetry` file in the project root. 
 
 #### Linux/macOS:
 
+##### Prerequisites
+
+- bash 3.5+
+- Python 3.8+ (shipped with macOS 12+ and most Linux distros)
+
 ```bash
 # create .hve-telemetry in the project root
 touch .hve-telemetry
@@ -82,6 +87,11 @@ Generate the report which will be saved to `telemetry-report.html` in `.copilot-
 ```
 
 #### Windows (PowerShell):
+
+##### Prerequisites
+
+- PowerShell 7.0
+- Python 3.8+ (shipped with Windows 10+ and most Windows Server versions)
 
 ```powershell
 # create .hve-telemetry in the project root
