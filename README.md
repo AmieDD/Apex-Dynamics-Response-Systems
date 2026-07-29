@@ -90,7 +90,7 @@ Generate the report which will be saved to `telemetry-report.html` in `.copilot-
 
 ##### Prerequisites
 
-- PowerShell 7.0
+- PowerShell 7.4+
 - Python 3.8+ (shipped with Windows 10+ and most Windows Server versions)
 
 ```powershell
