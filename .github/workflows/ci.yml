@@ -38,6 +38,9 @@ jobs:
       - name: Check sensor-log artifacts are up to date
         run: npm run lint:sensor-log
 
+      - name: Check sim-overlay artifacts are up to date
+        run: npm run lint:sim-overlay
+
       - name: Test
         run: npm test
 

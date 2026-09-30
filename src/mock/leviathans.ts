@@ -51,7 +51,7 @@ const ROSTER: readonly RosterSpec[] = [
     target: 'MERCER ISLAND', startRange: 165,
   },
   {
-    codename: 'Nyxmora', archetype: 'Umbral Leviathan', status: 'SUBMERGED', threat: 'Stirring',
+    codename: 'Voltragor', archetype: 'Umbral Leviathan', status: 'SUBMERGED', threat: 'Stirring',
     from: { lng: -122.320, lat: 47.730 }, to: { lng: -122.210, lat: 47.678 },
     target: 'KIRKLAND', startRange: 188,
   },

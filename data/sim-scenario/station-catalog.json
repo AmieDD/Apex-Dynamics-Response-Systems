@@ -1,0 +1,34 @@
+{
+  "durationMs": 1600475,
+  "epochMs": 1784538000000,
+  "frame": {
+    "originLatitude": 47.606,
+    "originLongitude": -122.333,
+    "radiusMeters": 6371008.8
+  },
+  "records": [
+    {
+      "stationId": "station-1",
+      "xMeters": 9646.997372793865,
+      "yMeters": 13123.253395633796
+    },
+    {
+      "stationId": "station-2",
+      "xMeters": -5571.126376957014,
+      "yMeters": 4663.876711794017
+    },
+    {
+      "stationId": "station-3",
+      "xMeters": 2442.584198460905,
+      "yMeters": -5528.606544246759
+    },
+    {
+      "stationId": "station-4",
+      "xMeters": -3005.6604884345543,
+      "yMeters": 11615.52638698647
+    }
+  ],
+  "scenarioId": "selected-scenario",
+  "schemaVersion": "multi-sensor-v2",
+  "sensorSeed": "sensor-v1"
+}

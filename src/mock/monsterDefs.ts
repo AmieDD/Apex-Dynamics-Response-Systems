@@ -101,7 +101,7 @@ export const MONSTER_DEFS: readonly MonsterDef[] = [
   },
   {
     id: 'mon-4',
-    codename: 'Nyxmora',
+    codename: 'Voltragor',
     archetype: 'Umbral Leviathan',
     heightMeters: 155,
     weightTons: 73000,

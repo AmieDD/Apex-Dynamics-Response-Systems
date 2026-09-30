@@ -1,0 +1,30 @@
+{
+  "manifestVersion": "scenario-bundle-v3",
+  "mode": "full",
+  "schemaVersion": "multi-sensor-v2",
+  "deliverySchemaVersion": "delivery-feed-v4",
+  "scenarioId": "selected-scenario",
+  "epochMs": 1784538000000,
+  "durationMs": 1600475,
+  "frame": {
+    "originLatitude": 47.606,
+    "originLongitude": -122.333,
+    "radiusMeters": 6371008.8
+  },
+  "generator": {
+    "name": "@apex-dynamics/data-generator",
+    "version": "0.0.0",
+    "modelVersion": "mean-reverting-surfaced-v1",
+    "pipelineVersion": "three-stage-v2"
+  },
+  "files": {
+    "delivery-feed.json": {
+      "bytes": 747276,
+      "sha256": "add94c118438ebc29438a8dda697d9433e48162fca9ee3b88e20a9a18f0b439b"
+    },
+    "station-catalog.json": {
+      "bytes": 759,
+      "sha256": "09d2af79a019688d3813039988335425017b498be1201e873e12bb13e8c1eae1"
+    }
+  }
+}
