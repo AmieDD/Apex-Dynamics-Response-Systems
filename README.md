@@ -16,6 +16,10 @@ This repo is an Vite + React frontend and only that. Everything is mocked end to
 
 Renders ≠ verified. A demo that looks done and code that's production-ready are different artifacts.
 
+## Background research
+
+The [docs/pre-prototype](docs/pre-prototype/) folder holds the discovery calls, email chains, and stakeholder interviews that came before this prototype. They explain why the command-center view looks the way it does and which concerns it left unresolved. Read them in numbered order, starting with the [initial discovery call](docs/pre-prototype/01-call-initial-discovery.md).
+
 ## Getting Started
 
 ### Prerequisites

@@ -927,6 +927,59 @@
   color: rgb(var(--text-muted));
 }
 
+/* Sensor contacts panel (CommandMap.tsx): toggle + key for the Scenario Studio
+   overlay, bottom-left opposite the marker legend. Unlike that legend it must
+   take clicks, so it stays compact to keep most of the map pannable. */
+.kdn-sim-panel {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid rgb(var(--border));
+  border-radius: 4px;
+  background: rgb(var(--surface) / 0.82);
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+}
+
+.kdn-sim-toggle {
+  padding: 4px 8px;
+  border: 1px solid rgb(var(--border));
+  border-radius: 3px;
+  background: transparent;
+  color: rgb(var(--text-muted));
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.kdn-sim-toggle[aria-pressed='true'] {
+  border-color: rgb(var(--accent));
+  color: rgb(var(--text));
+}
+
+.kdn-sim-toggle:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
+}
+
+.kdn-sim-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kdn-sim-key {
+  font-size: 10px;
+}
+
 /* Roster card whose leviathan is actively repelled by a dispatch
    (LeviathanRoster.tsx). A brief accent-violet background wash echoes the map's
    REPELLED flag so the rail reflects the same dispatch action, then clears

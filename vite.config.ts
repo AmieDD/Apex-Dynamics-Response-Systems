@@ -38,6 +38,6 @@ export default defineConfig({
     // component/hook tests opt into jsdom per-file via a `// @vitest-environment
     // jsdom` docblock. The .tsx pattern covers rendered-component tests.
     environment: 'node',
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.ts'],
   },
 })

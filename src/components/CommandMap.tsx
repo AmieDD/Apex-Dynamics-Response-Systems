@@ -30,6 +30,18 @@ import {
 } from '../mock/leviathans'
 import { clipzillaQuipBank, pickQuip } from '../mock/clipzilla'
 import { threatColor, threatLabel, type ThreatLevel } from '../mock/severity'
+import simOverlayJson from '../mock/simOverlay.json'
+import {
+  asOverlay,
+  indexSeismic,
+  NO_PULSES,
+  playbackTime,
+  radarFeatures,
+  radarWindow,
+  snapshotWindow,
+  stationFeatures,
+  stationPulses,
+} from '../mock/simPlayback'
 import type { Leviathan, LeviathanStatus } from '../mock/types'
 import { isWebglAvailable } from '../isWebglAvailable'
 
@@ -57,6 +69,15 @@ const REDMOND = { lng: -122.1215, lat: 47.674 } as const
 
 /** How long the summoned Clipzilla lingers before fading out (ms). */
 const CLIPZILLA_EGG_DURATION_MS = 5000
+
+/** Committed Scenario Studio observations (anonymous radar + seismic stations)
+    replayed as the Sensor contacts layer. Radar geometry is built once. */
+const SIM_OVERLAY = asOverlay(simOverlayJson)
+const SIM_RADAR = radarFeatures(SIM_OVERLAY)
+const SIM_SEISMIC_INDEX = indexSeismic(SIM_OVERLAY)
+const SIM_RADAR_COLOR = '#7dd3fc'
+const SIM_STATION_COLOR = '#e6edf3'
+const SIM_PULSE_COLOR = '#fbbf24'
 
 /** Inline kaiju-badge fallback for the summoned Clipzilla, mirroring the top-bar
     mascot's graceful degradation so a missing pose never breaks the egg. */
@@ -205,6 +226,18 @@ export default function CommandMap({
   useEffect(() => {
     simTimeRef.current = simTime
   }, [simTime])
+
+  // Sensor contacts overlay: replays on the same sim clock as the leviathans,
+  // or shows every radar return with no pulses under reduced motion.
+  const [sensorsVisible, setSensorsVisible] = useState(true)
+  const simWindow = reducedMotion
+    ? snapshotWindow(SIM_OVERLAY)
+    : radarWindow(playbackTime(simTime, SIM_OVERLAY.durationMs))
+  const simStations = stationFeatures(
+    SIM_OVERLAY,
+    reducedMotion ? NO_PULSES : stationPulses(SIM_SEISMIC_INDEX, simWindow.to),
+  )
+  const simVisibility = sensorsVisible ? 'visible' : 'none'
 
   useEffect(() => {
     if (reducedMotion) {
@@ -458,6 +491,7 @@ export default function CommandMap({
           </div>
         </div>
       ) : (
+        <>
         <Map
           ref={setMapRef}
           initialViewState={INITIAL_VIEW_STATE}
@@ -468,6 +502,53 @@ export default function CommandMap({
           onError={(e) => setMapError(e.error)}
         >
           <AttributionControl compact={false} />
+          <Source id="kdn-sim-radar" type="geojson" data={SIM_RADAR}>
+            <Layer
+              id="kdn-sim-radar"
+              type="circle"
+              layout={{ visibility: simVisibility }}
+              filter={[
+                'all',
+                reducedMotion
+                  ? ['>=', ['get', 't'], simWindow.from]
+                  : ['>', ['get', 't'], simWindow.from],
+                ['<=', ['get', 't'], simWindow.to],
+              ]}
+              paint={{
+                'circle-radius': 2.5,
+                'circle-color': SIM_RADAR_COLOR,
+                'circle-opacity': reducedMotion
+                  ? 0.55
+                  : ['interpolate', ['linear'], ['get', 't'], simWindow.from, 0.1, simWindow.to, 0.9],
+              }}
+            />
+          </Source>
+          <Source id="kdn-sim-stations" type="geojson" data={simStations}>
+            <Layer
+              id="kdn-sim-station-pulse"
+              type="circle"
+              layout={{ visibility: simVisibility }}
+              filter={['>', ['get', 'pulse'], 0]}
+              paint={{
+                'circle-radius': ['interpolate', ['linear'], ['get', 'pulse'], 0, 22, 1, 7],
+                'circle-opacity': 0,
+                'circle-stroke-color': SIM_PULSE_COLOR,
+                'circle-stroke-width': 2,
+                'circle-stroke-opacity': ['get', 'pulse'],
+              }}
+            />
+            <Layer
+              id="kdn-sim-station"
+              type="circle"
+              layout={{ visibility: simVisibility }}
+              paint={{
+                'circle-radius': 4.5,
+                'circle-color': SIM_STATION_COLOR,
+                'circle-stroke-color': '#0d1117',
+                'circle-stroke-width': 1.5,
+              }}
+            />
+          </Source>
           <Source id="kdn-trackers" type="geojson" data={trackData}>
           <Layer
             id="kdn-track-full"
@@ -582,6 +663,34 @@ export default function CommandMap({
           </Marker>
         )}
         </Map>
+        <div className="kdn-sim-panel">
+          <button
+            type="button"
+            className="kdn-sim-toggle"
+            aria-pressed={sensorsVisible}
+            onClick={() => setSensorsVisible((visible) => !visible)}
+          >
+            <span aria-hidden="true">{sensorsVisible ? '■ ' : '□ '}</span>
+            Sensor contacts
+          </button>
+          {sensorsVisible && (
+            <div className="kdn-sim-legend" aria-label="Sensor contacts legend">
+              <span className="kdn-legend-row">
+                <span className="kdn-legend-key kdn-sim-key" style={{ color: SIM_RADAR_COLOR }} aria-hidden="true">●</span>
+                <span className="kdn-legend-text">radar return</span>
+              </span>
+              <span className="kdn-legend-row">
+                <span className="kdn-legend-key kdn-sim-key" style={{ color: SIM_STATION_COLOR }} aria-hidden="true">◉</span>
+                <span className="kdn-legend-text">seismic station</span>
+              </span>
+              <span className="kdn-legend-row">
+                <span className="kdn-legend-key kdn-sim-key" style={{ color: SIM_PULSE_COLOR }} aria-hidden="true">◯</span>
+                <span className="kdn-legend-text">seismic pulse</span>
+              </span>
+            </div>
+          )}
+        </div>
+        </>
       )}
 
       {alertActive && (

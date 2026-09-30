@@ -17,7 +17,9 @@
     "build:workshop-nav": "node scripts/build-workshop-nav.mjs",
     "lint:workshop-nav": "node scripts/build-workshop-nav.mjs --check",
     "generate:sensor-log": "node --import ./scripts/ts-resolve.mjs scripts/generate-sensor-log.ts",
-    "lint:sensor-log": "node --import ./scripts/ts-resolve.mjs scripts/generate-sensor-log.ts --check"
+    "lint:sensor-log": "node --import ./scripts/ts-resolve.mjs scripts/generate-sensor-log.ts --check",
+    "generate:sim-overlay": "node --import ./scripts/ts-resolve.mjs scripts/generate-sim-overlay.ts",
+    "lint:sim-overlay": "node --import ./scripts/ts-resolve.mjs scripts/generate-sim-overlay.ts --check"
   },
   "dependencies": {
     "maplibre-gl": "^4.7.1",

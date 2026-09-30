@@ -2,6 +2,7 @@
 // card surfaces class numeral, archetype, key telemetry, status, and an HP bar
 // tinted by the leviathan's threat level (color paired with a text label).
 
+import { useState } from 'react'
 import { etaToLandfall, formatEta } from '../mock/leviathans'
 import {
   threatColor,
@@ -55,6 +56,42 @@ function Stat({
   )
 }
 
+/** Portrait from `public/Monster-<Codename>.webp` (160px, 2x the 40px frame); not every leviathan has art,
+    so a failed load falls back to a codename monogram. */
+function LeviathanPortrait({
+  codename,
+  accent,
+}: {
+  codename: string
+  accent: string
+}): React.JSX.Element {
+  const [failed, setFailed] = useState(false)
+  const frame = 'h-10 w-10 shrink-0 overflow-hidden rounded-sm border bg-surface-raised'
+
+  if (failed) {
+    return (
+      <span
+        aria-hidden="true"
+        className={`${frame} flex items-center justify-center font-mono text-sm font-bold`}
+        style={{ borderColor: accent, color: accent }}
+      >
+        {codename.charAt(0)}
+      </span>
+    )
+  }
+
+  return (
+    <img
+      src={`${import.meta.env.BASE_URL}Monster-${codename}.webp`}
+      alt=""
+      loading="lazy"
+      className={`${frame} object-cover`}
+      style={{ borderColor: accent }}
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 function LeviathanCard({
   leviathan,
   selected,
@@ -92,9 +129,12 @@ function LeviathanCard({
         }}
       >
         <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold text-text">{leviathan.codename}</span>
-            <span className="text-[11px] text-text-muted">{leviathan.archetype}</span>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <LeviathanPortrait codename={leviathan.codename} accent={accent} />
+            <div className="flex min-w-0 flex-col leading-tight">
+              <span className="text-sm font-semibold text-text">{leviathan.codename}</span>
+              <span className="text-[11px] text-text-muted">{leviathan.archetype}</span>
+            </div>
           </div>
           <span
             className="shrink-0 rounded-sm border px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-[0.15em]"

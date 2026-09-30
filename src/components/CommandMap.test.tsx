@@ -187,3 +187,29 @@ describe('CommandMap Clipzilla easter egg', () => {
     expect(screen.getByText(CALM_FIRST)).toBeTruthy()
   })
 })
+
+describe('CommandMap Sensor contacts overlay', () => {
+  it('shows the overlay by default and toggles it on click', () => {
+    renderEgg()
+
+    const toggle = screen.getByRole('button', { name: 'Sensor contacts' })
+    expect(toggle.getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByText('radar return')).toBeTruthy()
+
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-pressed')).toBe('false')
+    expect(screen.queryByText('radar return')).toBeNull()
+
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('stays out of the no-WebGL fallback', () => {
+    vi.mocked(isWebglAvailable).mockReturnValue(false)
+
+    renderEgg()
+
+    expect(screen.queryByRole('button', { name: 'Sensor contacts' })).toBeNull()
+    expect(screen.queryByText('radar return')).toBeNull()
+  })
+})
