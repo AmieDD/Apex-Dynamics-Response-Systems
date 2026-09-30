@@ -105,6 +105,13 @@ describe('buildOverlay', () => {
     expect(() => buildOverlay(feed([standardForAlternate]), catalog())).toThrow(/wrong format/)
   })
 
+  it('rejects stations that convert outside WGS84 bounds', () => {
+    const far = { ...catalog(), records: [{ stationId: 'station-1', xMeters: 0, yMeters: 1e8 }] }
+    expect(() => buildOverlay({ ...feed([]), profile: { version: 'delivery-v3', alternateStations: [] }, stationAliases: [] }, far)).toThrow(
+      /station-1 position is out of range/,
+    )
+  })
+
   it('rejects feeds and catalogs from different scenarios', () => {
     expect(() => buildOverlay({ ...feed([]), scenarioId: 'other' }, catalog())).toThrow(/different scenarios/)
   })

@@ -237,6 +237,8 @@ export function buildArtifacts(input: BundleInput): Map<string, Buffer> {
   for (const [actual, expected, label] of checks) {
     if (actual !== expected) fail(`Unsupported bundle ${label} ${String(actual)} (expected ${expected})`)
   }
+  const version = generator.version
+  if (typeof version !== 'string' || version.trim() === '') fail('Bundle generator.version must be a non-empty string')
   const mode = manifest.mode
   const allowed = typeof mode === 'string' && Object.hasOwn(MODE_FILES, mode) ? MODE_FILES[mode] : undefined
   if (!allowed) fail(`Unsupported bundle mode ${String(mode)}`)
@@ -253,6 +255,13 @@ export function buildArtifacts(input: BundleInput): Map<string, Buffer> {
   matchEnvelope(feed, manifest, FEED)
   matchEnvelope(catalog, manifest, CATALOG)
   const overlay = buildOverlay(feed, catalog)
+  // buildOverlay validated the catalog frame, and matchEnvelope tied these keys to it.
+  const manifestFrame = manifest.frame as Json
+  const frame = {
+    originLatitude: manifestFrame.originLatitude,
+    originLongitude: manifestFrame.originLongitude,
+    radiusMeters: manifestFrame.radiusMeters,
+  }
 
   const source = {
     manifestVersion: manifest.manifestVersion,
@@ -262,10 +271,10 @@ export function buildArtifacts(input: BundleInput): Map<string, Buffer> {
     scenarioId: manifest.scenarioId,
     epochMs: manifest.epochMs,
     durationMs: manifest.durationMs,
-    frame: manifest.frame,
+    frame,
     generator: {
       name: generator.name,
-      version: generator.version,
+      version,
       modelVersion: generator.modelVersion,
       pipelineVersion: generator.pipelineVersion,
     },

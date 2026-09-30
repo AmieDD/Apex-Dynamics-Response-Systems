@@ -216,6 +216,21 @@ describe('readBundle + buildArtifacts', () => {
     expect(() => buildArtifacts(readBundle(writeZip(files)))).toThrow(/generator.modelVersion other-model/)
   })
 
+  it('rejects a missing or non-string generator version', () => {
+    for (const version of [undefined, '', 42, { nested: true }]) {
+      const files = bundleFiles('observations', {
+        generator: { name: '@apex-dynamics/data-generator', version, modelVersion: 'mean-reverting-surfaced-v1', pipelineVersion: 'three-stage-v2' },
+      })
+      expect(() => buildArtifacts(readBundle(writeZip(files)))).toThrow(/generator.version must be a non-empty string/)
+    }
+  })
+
+  it('writes only the three frame fields to source.json', () => {
+    const files = bundleFiles('observations', { frame: { ...FRAME, extra: { injected: true } } })
+    const source = JSON.parse(buildArtifacts(readBundle(writeZip(files))).get(OUTPUTS.source)!.toString('utf8'))
+    expect(source.frame).toEqual(FRAME)
+  })
+
   it('rejects a manifest file list that does not match its mode', () => {
     const files = bundleFiles('full', { mode: 'observations' })
     expect(() => buildArtifacts(readBundle(writeZip(files)))).toThrow(/does not match bundle mode observations/)

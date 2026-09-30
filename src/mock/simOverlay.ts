@@ -151,6 +151,7 @@ export function buildOverlay(feedInput: unknown, catalogInput: unknown): SimOver
     if (stationIds.has(stationId)) fail(`duplicate station ${stationId}`)
     stationIds.add(stationId)
     const { lat, lng } = toLatLng(finite(station.xMeters, `${stationId} xMeters`), finite(station.yMeters, `${stationId} yMeters`), frame)
+    if (Math.abs(lat) > 90 || Math.abs(lng) > 180) fail(`${stationId} position is out of range`)
     stations.push({ stationId, lat: round6(lat), lng: round6(lng) })
   }
 
